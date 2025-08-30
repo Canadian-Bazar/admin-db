@@ -1,0 +1,57 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  <h1 style="color: #dc3545; margin: 0; font-size: 28px; font-weight: bold;">
+    Account Blocked
+  </h1>
+</div>
+
+<div style="color: #333; line-height: 1.6; font-size: 16px;">
+  <p style="margin-bottom: 20px;">
+    Dear <strong><%= companyName || 'Seller' %></strong>,
+  </p>
+
+  <p style="margin-bottom: 20px;">
+    We regret to inform you that your Canadian Bazaar seller account has been temporarily blocked.
+  </p>
+
+  <div style="background-color: #f8f9fa; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #dc3545; margin: 0 0 10px 0; font-size: 18px;">Reason for blocking:</h3>
+    <p style="margin: 0; font-size: 16px; color: #555;">
+      <%= blockReason || 'Policy violation detected' %>
+    </p>
+  </div>
+
+  <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 20px; margin: 25px 0;">
+    <h4 style="color: #856404; margin: 0 0 15px 0; font-size: 16px;">What happens next?</h4>
+    <ul style="margin: 0; padding-left: 20px; color: #856404;">
+      <li style="margin-bottom: 8px;">Your account access has been temporarily suspended</li>
+      <li style="margin-bottom: 8px;">You will not be able to login or access your seller dashboard</li>
+      <li style="margin-bottom: 8px;">Your existing listings are currently hidden from buyers</li>
+      <li style="margin-bottom: 8px;">No new orders will be processed</li>
+    </ul>
+  </div>
+
+  <div style="border: 1px solid #d1ecf1; border-radius: 5px; background-color: #d1ecf1; padding: 20px; margin: 25px 0;">
+    <h4 style="color: #0c5460; margin: 0 0 15px 0; font-size: 16px;">How to resolve this:</h4>
+    <p style="margin: 0; color: #0c5460; font-size: 14px;">
+      If you believe this blocking was made in error or if you have resolved the issue mentioned above, 
+      please contact our support team immediately. We will review your case and may reinstate your account 
+      once the matter is resolved.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="mailto:support@canadianbazaar.ca" 
+       style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+      Contact Support
+    </a>
+  </div>
+
+  <p style="margin-top: 30px; color: #666; font-size: 14px;">
+    We appreciate your understanding and look forward to resolving this matter quickly.
+  </p>
+
+  <p style="margin-bottom: 0; color: #666; font-size: 14px;">
+    Best regards,<br>
+    <strong>Canadian Bazaar Admin Team</strong>
+  </p>
+</div>
