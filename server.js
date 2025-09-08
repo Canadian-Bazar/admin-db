@@ -48,14 +48,15 @@ init().then((dbStatus) => {
   api.use(bodyParser.json({ limit: '32mb' }))
   api.use(bodyParser.urlencoded({ limit: '32mb', extended: false }))
   api.use(cookieParser())
-  api.use(
-    cors({
-      allowedHeaders: 'Content-Type',
-      credentials: true,
-      methods: 'POST, GET, PATCH, PUT, DELETE, HEAD, OPTIONS',
-      origin: 'http://localhost:3000',
-    }),
-  )
+api.use(
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization' ,'x-user-role'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'], // proper array
+  })
+);
+
 
   api.use('/public', express.static(path.join(__dirname, 'public')))
 

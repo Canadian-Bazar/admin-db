@@ -117,13 +117,15 @@ export const loginController = async (req, res) => {
     user.loginAttempts = 0
     await user.save()
     user = await User.findById(user._id).lean()
-    const { accessToken, refreshToken } = generateTokens(user)
+    // Add role for JWT token
+    const userWithRole = { ...user, role: 'admin' }
+    const { accessToken, refreshToken } = generateTokens(userWithRole)
     res
-      .cookie('accessToken', accessToken, {
+      .cookie('adminAccessToken', accessToken, {
         httpOnly: process.env.NODE_ENV === 'development',
         secure: !process.env.NODE_ENV === 'development',
       })
-      .cookie('refreshToken', refreshToken, {
+      .cookie('adminRefreshToken', refreshToken, {
         httpOnly: process.env.NODE_ENV === 'development',
         secure: !process.env.NODE_ENV === 'development',
       })
@@ -150,11 +152,11 @@ export const loginController = async (req, res) => {
 export const logoutController = async (req, res) => {
   try {
     res
-      .clearCookie('accessToken', {
+      .clearCookie('adminAccessToken', {
         httpOnly: process.env.NODE_ENV === 'development',
         secure: !process.env.NODE_ENV === 'development',
       })
-      .clearCookie('refreshToken', {
+      .clearCookie('adminRefreshToken', {
         httpOnly: process.env.NODE_ENV === 'development',
         secure: !process.env.NODE_ENV === 'development',
       })
@@ -181,8 +183,8 @@ export const logoutController = async (req, res) => {
  */
 export const verifyTokensController = async (req, res) => {
   try {
-    let accessToken = req.cookies.accessToken
-    let refreshToken = req.cookies.refreshToken
+    let accessToken = req.cookies.adminAccessToken
+    let refreshToken = req.cookies.adminRefreshToken
 
     if (!accessToken) {
       throw buildErrorObject(httpStatus.UNAUTHORIZED, 'ACCESS_TOKEN_MISSING')
@@ -215,12 +217,13 @@ export const verifyTokensController = async (req, res) => {
             email: user.email,
             fullName: user.fullName,
             roleId: user.roleId,
+            role: 'admin'
           }
 
           const { accessToken } = generateTokens(user)
 
           res
-            .cookie('accessToken', accessToken, {
+            .cookie('adminAccessToken', accessToken, {
               httpOnly: true,
               secure,
             

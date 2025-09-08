@@ -1,0 +1,29 @@
+<div style="text-align: center; margin-bottom: 30px;">
+  <h1 style="color: #dc3545; margin: 0; font-size: 28px; font-weight: bold;">
+    Quotation Rejected
+  </h1>
+</div>
+
+<div style="color: #333; line-height: 1.6; font-size: 16px;">
+
+  <p style="margin-bottom: 20px;">
+    Thank you for submitting your website quotation request. After careful review, 
+    we regret to inform you that it has been rejected.
+  </p>
+
+  <div style="background-color: #f8f9fa; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #dc3545; margin: 0 0 10px 0; font-size: 18px;">Reason for rejection:</h3>
+    <p style="margin: 0; font-size: 16px; color: #555;">
+      <%= rejectionReason || 'Your quotation did not meet our requirements.' %>
+    </p>
+  </div>
+
+  <p style="margin-top: 30px; color: #666; font-size: 14px;">
+    If you have any questions or need clarification, please contact our support team.
+  </p>
+
+  <p style="margin-bottom: 0; color: #666; font-size: 14px;">
+    Best regards,<br>
+    <strong>Canadian Bazaar Team</strong>
+  </p>
+</div>
