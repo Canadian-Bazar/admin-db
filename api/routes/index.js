@@ -10,6 +10,12 @@ import websiteQuotationRoutes from '../routes/website-quotation.routes.js'
 import websiteProjectRoutes from '../routes/website-project.routes.js'
 import subscriptionTemplatesRoutes from '../routes/subscription-templates.routes.js'
 import subscriptionVersionsRoutes from '../routes/subscription-versions.routes.js'
+import sellerRoutes from '../routes/seller.routes.js'
+// Permission Management Routes
+import permissionRoutes from '../routes/permission.routes.js'
+import userPermissionRoutes from '../routes/user-permission.routes.js'
+import userGroupRoutes from '../routes/user-group.routes.js'
+import userManagementRoutes from '../routes/user-management.routes.js'
 
 const v1Routes = express.Router()
 const router = express.Router()
@@ -17,13 +23,19 @@ const router = express.Router()
 v1Routes.use('/auth', authRoutes)
 v1Routes.use('/upload', uploadRoutes)
 v1Routes.use('/category', categoryRoutes)
-// v1Routes.use('/seller', sellerRoutes) // REMOVED: Admin-db should not have seller routes
+v1Routes.use('/seller', sellerRoutes) // REMOVED: Admin-db should not have seller routes
 v1Routes.use('/certification', certificationRoutes)
 v1Routes.use('/blogs', blogsRoutes)
 v1Routes.use('/quotations', websiteQuotationRoutes)
 v1Routes.use('/website-projects', websiteProjectRoutes)
 v1Routes.use('/subscription-templates', subscriptionTemplatesRoutes)
 v1Routes.use('/subscription-versions', subscriptionVersionsRoutes)
+
+// Permission Management Routes
+v1Routes.use('/permissions', permissionRoutes)
+v1Routes.use('/user-permissions', userPermissionRoutes)
+v1Routes.use('/user-groups', userGroupRoutes)
+v1Routes.use('/users', userManagementRoutes)
 
 router.use('/api/v1', v1Routes)
 

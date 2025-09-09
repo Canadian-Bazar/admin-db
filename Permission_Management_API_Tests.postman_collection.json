@@ -1,0 +1,932 @@
+{
+  "info": {
+    "name": "Permission Management API Tests",
+    "description": "Comprehensive test collection for the permission management system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "admin",
+      "value": "http://localhost:7078/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "adminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "permissionId", 
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "groupId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "roleId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login Super Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const cookies = pm.cookies.all();",
+                  "    const adminToken = cookies.find(c => c.name === 'adminAccessToken');",
+                  "    if (adminToken) {",
+                  "        pm.collectionVariables.set('adminAccessToken', adminToken.value);",
+                  "        console.log('Admin token set:', adminToken.value);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"SuperAdmin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/auth/login",
+              "host": ["{{admin}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with super admin credentials to get authentication token"
+          }
+        }
+      ],
+      "description": "Authentication endpoints for getting access tokens"
+    },
+    {
+      "name": "📝 Permission Management",
+      "item": [
+        {
+          "name": "Create Permission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('permissionId', responseJson.response._id);",
+                  "    console.log('Permission ID set:', responseJson.response._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"test-permission\",\n  \"route\": \"/test\",\n  \"description\": \"Test permission for API testing\",\n  \"module\": \"testing\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/permissions",
+              "host": ["{{admin}}"],
+              "path": ["permissions"]
+            },
+            "description": "Create a new permission for testing"
+          }
+        },
+        {
+          "name": "Get All Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/permissions?page=1&limit=10&search=test&isActive=true",
+              "host": ["{{admin}}"],
+              "path": ["permissions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit", 
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "test"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get all permissions with pagination and filters"
+          }
+        },
+        {
+          "name": "Get Permission by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/permissions/{{permissionId}}",
+              "host": ["{{admin}}"],
+              "path": ["permissions", "{{permissionId}}"]
+            },
+            "description": "Get specific permission by ID"
+          }
+        },
+        {
+          "name": "Update Permission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated test permission description\",\n  \"route\": \"/test-updated\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/permissions/{{permissionId}}",
+              "host": ["{{admin}}"],
+              "path": ["permissions", "{{permissionId}}"]
+            },
+            "description": "Update permission details"
+          }
+        },
+        {
+          "name": "Activate Permission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/permissions/{{permissionId}}/activate",
+              "host": ["{{admin}}"],
+              "path": ["permissions", "{{permissionId}}", "activate"]
+            },
+            "description": "Activate permission"
+          }
+        },
+        {
+          "name": "Deactivate Permission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/permissions/{{permissionId}}/deactivate",
+              "host": ["{{admin}}"],
+              "path": ["permissions", "{{permissionId}}", "deactivate"]
+            },
+            "description": "Deactivate permission"
+          }
+        },
+        {
+          "name": "Delete Permission",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/permissions/{{permissionId}}",
+              "host": ["{{admin}}"],
+              "path": ["permissions", "{{permissionId}}"]
+            },
+            "description": "Delete test permission"
+          }
+        }
+      ],
+      "description": "CRUD operations for permissions"
+    },
+    {
+      "name": "👥 User Group Management",
+      "item": [
+        {
+          "name": "Create User Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('groupId', responseJson.response._id);",
+                  "    console.log('Group ID set:', responseJson.response._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Managers\",\n  \"description\": \"Test group for API testing\",\n  \"permissions\": [\n    {\n      \"permissionId\": \"{{permissionId}}\",\n      \"grantedActions\": [\"view\", \"create\", \"edit\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-groups",
+              "host": ["{{admin}}"],
+              "path": ["user-groups"]
+            },
+            "description": "Create a new user group with permissions"
+          }
+        },
+        {
+          "name": "Get All Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups?page=1&limit=10&search=Test&isActive=true",
+              "host": ["{{admin}}"],
+              "path": ["user-groups"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "Test"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get all user groups with pagination and filters"
+          }
+        },
+        {
+          "name": "Get Group by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}"]
+            },
+            "description": "Get specific user group by ID"
+          }
+        },
+        {
+          "name": "Update Group Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Test Managers\",\n  \"description\": \"Updated test group description\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}"]
+            },
+            "description": "Update group information"
+          }
+        },
+        {
+          "name": "Add User to Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/members",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "members"]
+            },
+            "description": "Add user to group"
+          }
+        },
+        {
+          "name": "Get Group Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/members?page=1&limit=10",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all members of a group"
+          }
+        },
+        {
+          "name": "Update Group Permissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [\n    {\n      \"permissionId\": \"{{permissionId}}\",\n      \"grantedActions\": [\"view\", \"create\", \"edit\", \"delete\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/permissions",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "permissions"]
+            },
+            "description": "Update group's permissions"
+          }
+        },
+        {
+          "name": "Remove User from Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/members/{{userId}}",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "members", "{{userId}}"]
+            },
+            "description": "Remove user from group"
+          }
+        },
+        {
+          "name": "Activate Group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/activate",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "activate"]
+            },
+            "description": "Activate user group"
+          }
+        },
+        {
+          "name": "Deactivate Group",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-groups/{{groupId}}/deactivate",
+              "host": ["{{admin}}"],
+              "path": ["user-groups", "{{groupId}}", "deactivate"]
+            },
+            "description": "Deactivate user group"
+          }
+        }
+      ],
+      "description": "User group management operations"
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Create User with Permissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('userId', responseJson.response.user._id);",
+                  "    console.log('User ID set:', responseJson.response.user._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Test User\",\n  \"email\": \"john.test@example.com\",\n  \"password\": \"TestUser123!\",\n  \"permissions\": [\n    {\n      \"permissionId\": \"{{permissionId}}\",\n      \"grantedActions\": [\"view\", \"create\"]\n    }\n  ],\n  \"groups\": [\"{{groupId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/users",
+              "host": ["{{admin}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user with individual permissions and group assignment"
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/users?page=1&limit=10&search=John&includePermissions=true&includeGroups=true",
+              "host": ["{{admin}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "John"
+                },
+                {
+                  "key": "includePermissions",
+                  "value": "true"
+                },
+                {
+                  "key": "includeGroups",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get all users with their permissions and groups"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/users/{{userId}}?includePermissions=true&includeGroups=true",
+              "host": ["{{admin}}"],
+              "path": ["users", "{{userId}}"],
+              "query": [
+                {
+                  "key": "includePermissions",
+                  "value": "true"
+                },
+                {
+                  "key": "includeGroups",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get specific user with their effective permissions and groups"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Updated User\",\n  \"email\": \"john.updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/users/{{userId}}",
+              "host": ["{{admin}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Update user details"
+          }
+        },
+        {
+          "name": "Change User Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewTestPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/users/{{userId}}/password",
+              "host": ["{{admin}}"],
+              "path": ["users", "{{userId}}", "password"]
+            },
+            "description": "Change user password"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/users/{{userId}}",
+              "host": ["{{admin}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Delete test user"
+          }
+        }
+      ],
+      "description": "User management operations"
+    },
+    {
+      "name": "🔑 User Permission Management",
+      "item": [
+        {
+          "name": "Assign Permission to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"permissionId\": \"{{permissionId}}\",\n  \"grantedActions\": [\"view\", \"create\", \"edit\"]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-permissions/assign",
+              "host": ["{{admin}}"],
+              "path": ["user-permissions", "assign"]
+            },
+            "description": "Assign individual permission to user"
+          }
+        },
+        {
+          "name": "Get User Effective Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/user-permissions/user/{{userId}}?includeGroups=true&module=testing",
+              "host": ["{{admin}}"],
+              "path": ["user-permissions", "user", "{{userId}}"],
+              "query": [
+                {
+                  "key": "includeGroups",
+                  "value": "true"
+                },
+                {
+                  "key": "module",
+                  "value": "testing"
+                }
+              ]
+            },
+            "description": "Get user's effective permissions (individual + group combined)"
+          }
+        },
+        {
+          "name": "Update User Permission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"permissionId\": \"{{permissionId}}\",\n  \"grantedActions\": [\"view\", \"create\", \"edit\", \"delete\"]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-permissions/update",
+              "host": ["{{admin}}"],
+              "path": ["user-permissions", "update"]
+            },
+            "description": "Update user's permission actions"
+          }
+        },
+        {
+          "name": "Bulk Assign Permissions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"permissions\": [\n    {\n      \"permissionId\": \"{{permissionId}}\",\n      \"grantedActions\": [\"view\", \"create\"]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-permissions/bulk-assign",
+              "host": ["{{admin}}"],
+              "path": ["user-permissions", "bulk-assign"]
+            },
+            "description": "Bulk assign multiple permissions to user"
+          }
+        },
+        {
+          "name": "Remove Permission from User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"permissionId\": \"{{permissionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/user-permissions/remove",
+              "host": ["{{admin}}"],
+              "path": ["user-permissions", "remove"]
+            },
+            "description": "Remove permission from user"
+          }
+        }
+      ],
+      "description": "Individual user permission management"
+    },
+    {
+      "name": "🧪 Protected Routes Testing",
+      "item": [
+        {
+          "name": "Test Categories Route (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{admin}}/category",
+              "host": ["{{admin}}"],
+              "path": ["category"]
+            },
+            "description": "Test protected route - should require 'categories' permission with 'view' action"
+          }
+        },
+        {
+          "name": "Test Create Category (Protected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "adminAccessToken={{adminAccessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Category\",\n  \"description\": \"Testing permission middleware\"\n}"
+            },
+            "url": {
+              "raw": "{{admin}}/category",
+              "host": ["{{admin}}"],
+              "path": ["category"]
+            },
+            "description": "Test protected route - should require 'categories' permission with 'create' action"
+          }
+        }
+      ],
+      "description": "Test protected routes with permission middleware"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Running request:', pm.info.requestName);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has success field', function () {",
+          "    const responseJson = pm.response.json();",
+          "    pm.expect(responseJson).to.have.property('success');",
+          "});",
+          "",
+          "if (pm.response.code !== 200 && pm.response.code !== 201) {",
+          "    console.log('Request failed with status:', pm.response.code);",
+          "    console.log('Response:', pm.response.text());",
+          "}"
+        ]
+      }
+    }
+  ]
+}

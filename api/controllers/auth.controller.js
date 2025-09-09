@@ -86,7 +86,9 @@ export const signupController = async (req, res) => {
 export const loginController = async (req, res) => {
   try {
     req = matchedData(req)
-    let user = await User.findOne({ email: req.email }).select('password loginAttempts blockExpires')
+    let user = await User.findOne({ email: req.email }).select('password loginAttempts blockExpires') .populate('roleId')
+
+    const userRole = user.roleId.role
 
     if (!user?._id) {
       throw buildErrorObject(httpStatus.UNAUTHORIZED, 'No Such User Exists')
@@ -118,8 +120,10 @@ export const loginController = async (req, res) => {
     await user.save()
     user = await User.findById(user._id).lean()
     // Add role for JWT token
-    const userWithRole = { ...user, role: 'admin' }
+    const userWithRole = { ...user,role:userRole }
     const { accessToken, refreshToken } = generateTokens(userWithRole)
+   
+
     res
       .cookie('adminAccessToken', accessToken, {
         httpOnly: process.env.NODE_ENV === 'development',
