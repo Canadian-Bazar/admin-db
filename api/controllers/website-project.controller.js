@@ -8,6 +8,7 @@ import buildResponse from '../utils/buildResponse.js'
 import handleError from '../utils/handleError.js'
 import mongoose from 'mongoose'
 import crypto from 'crypto'
+import jwt from 'jsonwebtoken'
 import { validate } from 'node-cron';
 
 /**
@@ -22,49 +23,228 @@ export const getAllWebsiteProjectsController = async (req, res) => {
       status,
       seller,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      search
     } = validatedData
-    
+
     limit = Math.min(Number(limit), 100)
     page = Number(page)
-    
-    const filter = {}
-    
+
+    const matchStage = {}
+
     if (status) {
-      filter.projectStatus = status
+      matchStage.projectStatus = status
     }
-    
+
     if (seller) {
-      filter.seller = seller
+      matchStage.seller = seller
     }
+
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'Sellers',
+          localField: 'seller',
+          foreignField: '_id',
+          as: 'seller'
+        }
+      },
+      { $unwind: { path: '$seller', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'WebsiteQuotation',
+          localField: 'websiteQuotation',
+          foreignField: '_id',
+          as: 'websiteQuotation'
+        }
+      },
+      { $unwind: { path: '$websiteQuotation', preserveNullAndEmptyArrays: true } },
+    ]
+
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'seller.companyName': { $regex: search, $options: 'i' } },
+            { 'seller.email': { $regex: search, $options: 'i' } },
+            { 'seller.phone': { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
+
+    pipeline.push({ $sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 } })
+    pipeline.push({ $skip: (page - 1) * limit })
+    pipeline.push({ $limit: limit })
     
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-    
-    const projects = await WebsiteProject.find(filter)
-      .populate('seller', 'companyName email phone')
-      .populate('websiteQuotation', 'domainName itemsSold')
-      .populate('websiteDocumentation')
-      .select('projectStatus paymentStatus projectStartDate expectedCompletionDate actualCompletionDate percentageCompletion report additionalDetails report2 websiteOverviewLink completionPaymentToken finalPaymentCompleted notes amountPaid amountPending selectedPlan createdAt updatedAt')
-      .sort(sortOptions)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .exec()
-    
-    const total = await WebsiteProject.countDocuments(filter)
-    
+    // LIMITED DETAILS for getAll
+    pipeline.push({
+      $project: {
+        _id: 1,
+        percentageCompletion: 1,
+        paymentStatus: 1,
+        projectStatus: 1,
+        createdAt: 1,
+        'seller.companyName': 1,
+        'seller.email': 1,
+        'seller.phone': 1,
+        'websiteQuotation.domainName': 1,
+      }
+    })
+
+    const projects = await WebsiteProject.aggregate(pipeline)
+
+    const countPipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'Sellers',
+          localField: 'seller',
+          foreignField: '_id',
+          as: 'seller'
+        }
+      },
+      { $unwind: { path: '$seller', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'WebsiteQuotation',
+          localField: 'websiteQuotation',
+          foreignField: '_id',
+          as: 'websiteQuotation'
+        }
+      },
+      { $unwind: { path: '$websiteQuotation', preserveNullAndEmptyArrays: true } },
+    ]
+
+    if (search) {
+      countPipeline.push({
+        $match: {
+          $or: [
+            { 'seller.companyName': { $regex: search, $options: 'i' } },
+            { 'seller.email': { $regex: search, $options: 'i' } },
+            { 'seller.phone': { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
+
+    countPipeline.push({ $count: 'total' })
+    const countResult = await WebsiteProject.aggregate(countPipeline)
+    const total = countResult[0]?.total || 0
+
     const response = {
-      projects,
+      docs: projects,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
-      total
+      total,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
     }
-    
+
     res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, response))
   } catch (err) {
     handleError(res, err)
   }
 }
+
+export const getProjectByIdController = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    // Validate if ID is provided
+    if (!id) {
+      return res.status(httpStatus.BAD_REQUEST).json(
+        buildResponse(httpStatus.BAD_REQUEST, null, 'Project ID is required')
+      )
+    }
+
+    const pipeline = [
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'Sellers',
+          localField: 'seller',
+          foreignField: '_id',
+          as: 'seller'
+        }
+      },
+      { $unwind: { path: '$seller', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'WebsiteQuotation',
+          localField: 'websiteQuotation',
+          foreignField: '_id',
+          as: 'websiteQuotation'
+        }
+      },
+      { $unwind: { path: '$websiteQuotation', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'WebsiteDocumentation',
+          localField: 'websiteDocumentation',
+          foreignField: '_id',
+          as: 'websiteDocumentation'
+        }
+      },
+      { $unwind: { path: '$websiteDocumentation', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          projectStatus: 1,
+          paymentStatus: 1,
+          projectStartDate: 1,
+          expectedCompletionDate: 1,
+          actualCompletionDate: 1,
+          percentageCompletion: 1,
+          report: 1,
+          additionalDetails: 1,
+          report2: 1,
+          anyChanges: 1,
+          additionalSuggestions: 1,
+          websiteOverviewLink: 1,
+          completionPaymentToken: 1,
+          finalPaymentCompleted: 1,
+          hasPaymentLink: 1,
+          linkExpiry: 1,
+          notes: 1,
+          amountPaid: 1,
+          amountPending: 1,
+          selectedPlan: 1,
+          transactionId: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          'seller._id': 1,
+          'seller.companyName': 1,
+          'seller.email': 1,
+          'seller.phone': 1,
+          'websiteQuotation._id': 1,
+          'websiteQuotation.domainName': 1,
+          'websiteQuotation.itemsSold': 1,
+          'websiteDocumentation._id': 1,
+          'websiteDocumentation.documentation': 1,
+          'websiteDocumentation.pricingPlans': 1,
+          'websiteDocumentation.status': 1 ,
+          
+          
+        }
+      }
+    ]
+
+    const project = await WebsiteProject.aggregate(pipeline)
+
+    if (!project || project.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).json(
+        buildResponse(httpStatus.NOT_FOUND, null, 'Project not found')
+      )
+    }
+
+    res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, project[0]))
+  } catch (err) {
+    handleError(res, err)
+  }
+}
+
 
 /**
  * Get seller's website projects
@@ -76,6 +256,7 @@ export const getSellerWebsiteProjectsController = async (req, res) => {
     const projects = await WebsiteProject.find({ seller: sellerId })
       .populate('websiteQuotation', 'domainName itemsSold')
       .populate('websiteDocumentation')
+      .select('projectStatus paymentStatus projectStartDate expectedCompletionDate actualCompletionDate percentageCompletion report additionalDetails report2 anyChanges additionalSuggestions websiteOverviewLink notes amountPaid amountPending selectedPlan transactionId completionPaymentToken completionPaymentTokenExpiry finalPaymentCompleted createdAt updatedAt')
       .sort({ createdAt: -1 })
       .exec()
     
@@ -90,29 +271,74 @@ export const getSellerWebsiteProjectsController = async (req, res) => {
  */
 export const updateWebsiteProjectController = async (req, res) => {
   try {
-    const { projectId } = req.params
-    const updateData = req.body
+    const validatedData = matchedData(req)
+    const { projectId } = validatedData
+    const updateData = validatedData
     
     const project = await WebsiteProject.findById(projectId)
     if (!project) {
       throw buildErrorObject(httpStatus.NOT_FOUND, 'Project not found')
     }
     
+    // Store previous values to check for changes
+    const previousPercentageCompletion = project.percentageCompletion
+    const previousProjectStatus = project.projectStatus
+    
     // Update project fields - exclude MongoDB internal fields and populated objects
     const excludeFields = ['_id', '__v', 'createdAt', 'updatedAt', 'seller', 'websiteQuotation', 'websiteDocumentation', 'transactionId']
     
     Object.keys(updateData).forEach(key => {
       if (updateData[key] !== undefined && !excludeFields.includes(key)) {
-        project[key] = updateData[key]
+        // Special handling for actualCompletionDate - only allow if percentageCompletion is 100%
+        if (key === 'actualCompletionDate') {
+          if (updateData.percentageCompletion === 100 || (updateData.percentageCompletion === undefined && project.percentageCompletion === 100)) {
+            project[key] = updateData[key]
+          }
+        } else {
+          project[key] = updateData[key]
+        }
       }
     })
+    
+    // Auto-set status and actualCompletionDate when percentageCompletion changes to 100%
+    if (updateData.percentageCompletion === 100 && previousPercentageCompletion !== 100) {
+      project.projectStatus = 'completed'
+      project.actualCompletionDate = new Date()
+    }
+    
+    // Remove payment link if percentageCompletion drops below 100%
+    if (updateData.percentageCompletion !== undefined && updateData.percentageCompletion !== 100 && previousPercentageCompletion === 100) {
+      project.actualCompletionDate = null
+      project.completionPaymentToken = null
+      project.hasPaymentLink = false
+      project.linkExpiry = null
+      if (previousProjectStatus === 'completed') {
+        project.projectStatus = 'in_progress'
+      }
+    }
+    
+    // If status is set to completed, ensure percentageCompletion is 100%
+    if (updateData.projectStatus === 'completed' && previousProjectStatus !== 'completed') {
+      project.percentageCompletion = 100
+      if (!project.actualCompletionDate) {
+        project.actualCompletionDate = new Date()
+      }
+    }
+    
+    // If status is changed from completed to something else, remove payment link
+    if (updateData.projectStatus !== undefined && updateData.projectStatus !== 'completed' && previousProjectStatus === 'completed') {
+      project.actualCompletionDate = null
+      project.completionPaymentToken = null
+      project.hasPaymentLink = false
+      project.linkExpiry = null
+    }
     
     await project.save()
     
     const updatedProject = await WebsiteProject.findById(projectId)
       .populate('seller', 'companyName email phone')
       .populate('websiteQuotation', 'domainName itemsSold')
-      .populate('websiteDocumentation')
+      .populate('websiteDocumentation', 'documentation pricingPlans status')
     
     res.status(httpStatus.OK).json(
       buildResponse(httpStatus.OK, {
@@ -300,20 +526,22 @@ export const completeProjectAndGeneratePaymentLinkController = async (req, res) 
       throw buildErrorObject(httpStatus.BAD_REQUEST, 'Final payment already completed')
     }
     
-    // Generate unique completion payment token
-    const completionToken = crypto.randomBytes(32).toString('hex')
-    const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days expiry
+    const paymentTokenPayload = {
+      projectId: project._id,
+      sellerId: project.seller,
+      type: 'final_payment'
+    }
+    const completionToken = jwt.sign(paymentTokenPayload, process.env.FINAL_PAYMENT_SECRET, { expiresIn: '7d' })
+    const linkExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days expiry
     
-    // Update project status and add completion token
     project.projectStatus = 'completed'
     project.percentageCompletion = 100
     project.actualCompletionDate = new Date()
     project.completionPaymentToken = completionToken
-    project.completionPaymentTokenExpiry = tokenExpiry
+    project.hasPaymentLink = true
     
     await project.save()
     
-    // Generate completion payment URL for seller
     const completionPaymentUrl = `${process.env.SELLER_UI_BASE_URL || 'http://localhost:3000'}/complete-payment/${completionToken}`
     
     const response = {
@@ -322,9 +550,9 @@ export const completeProjectAndGeneratePaymentLinkController = async (req, res) 
         _id: project._id,
         projectStatus: project.projectStatus,
         percentageCompletion: project.percentageCompletion,
-        completionPaymentToken,
+        completionPaymentToken: completionToken,
         completionPaymentUrl,
-        tokenExpiry
+        linkExpiry
       },
       seller: {
         name: project.seller?.companyName || project.seller?.name,

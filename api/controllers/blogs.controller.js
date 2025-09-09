@@ -17,7 +17,8 @@ const generateSlug = (title) => {
 
 export const createBlogController = async (req, res) => {
     try {
-        const { title, author, content, description } = matchedData(req);
+        const validatedData = matchedData(req);
+        const { title, author, content, description } = validatedData;
 
         let coverImage = "";
 

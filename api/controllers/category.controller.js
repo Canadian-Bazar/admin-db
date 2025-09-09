@@ -37,7 +37,8 @@ export const createCategoryController = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
-    const { name, description, parentCategory } = matchedData(req);
+    const validatedData = matchedData(req);
+    const { name, description, parentCategory } = validatedData;
 
     await session.startTransaction();
 
@@ -123,7 +124,7 @@ export const getAllCategoriesController = async (req, res) => {
         } else if (parentCategory && parentCategory !== 'all') {
 
             
-            filter.parentCategory = new mongoose.Types.ObjectId(parentCategory);
+            filter.parentCategory = mongoose.Types.ObjectId.createFromHexString(parentCategory);
         }
 
         const options = {

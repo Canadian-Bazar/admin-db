@@ -77,7 +77,11 @@ const WebsiteProjectSchema = new mongoose.Schema({
     unique: true,
     sparse: true // Only create index for non-null values
   },
-  completionPaymentTokenExpiry: Date,
+  hasPaymentLink: {
+    type: Boolean,
+    default: false
+  },
+  linkExpiry: Date,
   finalPaymentCompleted: {
     type: Boolean,
     default: false

@@ -23,7 +23,8 @@ export const createTemplateController = async (req, res) => {
   const session = await mongoose.startSession()
 
   try {
-    const { name, description, category, sortOrder, createdBy } = matchedData(req)
+    const validatedData = matchedData(req)
+    const { name, description, category, sortOrder, createdBy } = validatedData
 
     await session.startTransaction()
 
@@ -139,7 +140,7 @@ export const getAllTemplatesController = async (req, res) => {
 /**
  * Get all active subscription plan templates with their current versions
  */
-export const getAllActiveSubscriptionTemplatesController = async (req, res) => {
+export const getAllActiveSubscriptionTemplatesController = async (_req, res) => {
   try {
     const templates = await SubscriptionPlanTemplate.find({ 
       isActive: true 

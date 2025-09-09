@@ -11,6 +11,9 @@ import handleError from '../utils/handleError.js'
 import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
 import sendMail from '../helpers/sendMail.js'
+import Seller from '../models/seller.schema.js'
+import SellerSubscription from '../models/seller-subscription.schema.js'
+
 
 export const generateWebsiteDocumentationToken = (id) => {
   return jwt.sign({ documentationId: id },
@@ -33,7 +36,6 @@ export const getAllWebsiteQuotationsController = async (req, res) => {
       page = 1,
       limit = 10,
       status,
-      seller,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = validatedData
@@ -46,10 +48,7 @@ export const getAllWebsiteQuotationsController = async (req, res) => {
     if (status) {
       filter.status = status
     }
-    
-    if (seller) {
-      filter.seller = seller
-    }
+
     
     const sortOptions = {}
     sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
@@ -83,123 +82,121 @@ export const getAllWebsiteQuotationsController = async (req, res) => {
  * Accept a website quotation (admin only)
  */
 export const acceptWebsiteQuotationController = async (req, res) => {
-  const session = await mongoose.startSession()
-  
+  const session = await mongoose.startSession();
+  let isTransactionCommitted = false;
+
   try {
-    await session.withTransaction(async () => {
-      const { quotationId } = req.params
-      
-      const {
-        message = 'Your website quotation has been accepted',
-        documentation = `Website documentation for the requested project`,
-        sitePrice = 1000,
-        selectedPlans = [] 
-      } = req.body
-      
-      console.log('Received data:', req.body)
-      console.log('Selected plans:', selectedPlans)
-      
-      const quotation = await WebsiteQuotation.findById(quotationId).session(session)
-      if (!quotation) {
-        throw buildErrorObject(httpStatus.NOT_FOUND, 'Quotation not found')
-      }
+    session.startTransaction();
+
+    const validatedData = matchedData(req);
+    const { documentation, websiteQuotationId, pricingPlans } = validatedData;
+
+    const websiteQuotationExists = await WebsiteQuotation.findById(websiteQuotationId).session(session);
+    if (!websiteQuotationExists) {
+      throw buildErrorObject(httpStatus.BAD_REQUEST, 'Invalid Website Quotation ID');
+    }
 
 
-    console.log("quotation" , quotation)
-      
-      if (quotation.status !== 'pending') {
-        throw buildErrorObject(httpStatus.BAD_REQUEST, 'Quotation already processed')
-      }
-      
-      // Update quotation status
-      quotation.status = 'approved'
-      await quotation.save({ session })
-      
-      // Create pricing plans using existing subscription plan templates
-      const pricingPlans = [
-        {
-          planName: 'Site Only',
-          sitePrice: Number(sitePrice),
-          subscriptionPrice: 0,
-          totalPrice: Number(sitePrice),
-          isActive: true,
-          selected: false
-        }
-      ]
-      
-      // Add selected subscription plans
-      for (const plan of selectedPlans) {
-        const { templateId, versionId, price, planName } = plan
-        
-        // For now, if template/version IDs are temporary, just create the plan without subscription version ID
-        // TODO: Update this when real template selection is implemented
-        if (templateId.startsWith('temp-') || versionId.startsWith('temp-')) {
-          pricingPlans.push({
-            planName: planName || 'Subscription Plan',
-            // subscriptionPlanVersionId: null, // No reference for temporary plans
-            sitePrice: Number(sitePrice),
-            subscriptionPrice: Number(price),
-            totalPrice: Number(sitePrice) + Number(price),
-            isActive: true,
-            selected: false
-          })
-        } else {
-          // Verify the subscription plan version exists for real IDs
-          const versionDoc = await SubscriptionPlanVersion.findById(versionId).session(session)
-          if (versionDoc && versionDoc.templateId.toString() === templateId) {
-            pricingPlans.push({
-              planName: planName || `Site + ${versionDoc.templateId.name}`,
-              subscriptionPlanVersionId: versionDoc._id,
-              sitePrice: Number(sitePrice),
-              subscriptionPrice: Number(price),
-              totalPrice: Number(sitePrice) + Number(price),
-              isActive: true,
-              selected: false
-            })
-          }
-        }
-      }
-      
-      const tempToken = generateWebsiteDocumentationToken('temp')
-      
-      // Create website documentation with admin-specified pricing
-      const websiteDocumentation = new WebsiteDocumentation({
-        websiteQuotationId: quotation._id,
-        documentation: documentation || `Website documentation for ${quotation.domainName}`,
-        pricingPlans,
-        token: tempToken,
-        status: 'pending'
-      })
-      
-      await websiteDocumentation.save({ session })
+    if(websiteQuotationExists.status==='approved'){
+      throw buildErrorObject(httpStatus.BAD_REQUEST, 'Quotation already approved');
+    }
+
+    websiteQuotationExists.status = 'approved';
+
+    const sellerId = websiteQuotationExists.seller;
 
 
-      console.log("websiteDocumentation" , websiteDocumentation)
+    const sellerExists = await Seller.findById(sellerId).session(session);
+    if (!sellerExists){
+      throw buildErrorObject(httpStatus.BAD_REQUEST, 'Invalid Seller ID');
+    }
 
-      const finalToken = generateWebsiteDocumentationToken(websiteDocumentation._id)
     
-      await WebsiteDocumentation.findByIdAndUpdate(
-        websiteDocumentation._id,
-        { token: finalToken },
-        { session }
-      )
+
+    const activeSellerSubscription = await SellerSubscription.findOne({
+      seller: sellerId,
+      status: 'active',
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() }
+    }).populate('planVersionId').session(session);
+
+    const hasActivePaidSubscription = activeSellerSubscription && 
+      activeSellerSubscription.planVersionId && 
+      (activeSellerSubscription.planVersionId.pricing.monthly > 0 || 
+       activeSellerSubscription.planVersionId.pricing.quarterly > 0 || 
+       activeSellerSubscription.planVersionId.pricing.yearly > 0);
+
+    const processedPricingPlans = await Promise.all(pricingPlans?.map(async (plan) => {
+      let subscriptionPrice = 0;
       
-      req.responseData = {
-        message: message || 'Quotation accepted and documentation created with custom pricing',
-        quotation,
-        documentation: websiteDocumentation,
-        token: finalToken
+      if (plan.subscriptionPlanVersionId && !hasActivePaidSubscription) {
+        const planVersion = await SubscriptionPlanVersion.findById(plan.subscriptionPlanVersionId).session(session);
+        if (planVersion) {
+          subscriptionPrice = planVersion.pricing.monthly || 0;
+        }
       }
+
+      return {
+        planName: plan.planName,
+        subscriptionPlanVersionId: plan.subscriptionPlanVersionId || null,
+        subscriptionPrice: hasActivePaidSubscription ? 0 : subscriptionPrice,
+        sitePrice: plan.sitePrice,
+        totalPrice: plan.sitePrice + (hasActivePaidSubscription ? 0 : subscriptionPrice),
+        status: 'pending',
+        isActive: true
+      };
+    }) || []);
+
+    const token = generateWebsiteDocumentationToken('temp');
+
+    const websiteDocumentation = new WebsiteDocumentation({
+      documentation,
+      websiteQuotationId,
+      pricingPlans: processedPricingPlans,
+      token
+    });
+
+    await websiteDocumentation.save({ session });
+
+    const finalToken = generateWebsiteDocumentationToken(websiteDocumentation._id);
+    
+    await WebsiteDocumentation.findByIdAndUpdate(
+      websiteDocumentation._id,
+      { token: finalToken },
+      { session }
+    );
+
+
+    await websiteQuotationExists.save({ session });
+
+
+    await session.commitTransaction();
+
+
+    
+
+
+    sendMail(sellerExists.email, 'quotation-accepted.ejs', {
+      token:finalToken,
+      subject: 'Documentation',
+      frontendURL: process.env.FRONTEND_URL,
     })
-    
-    res.status(httpStatus.OK).json(
-      buildResponse(httpStatus.OK, req.responseData)
-    )
-    
+    isTransactionCommitted = true;
+
+    return res.status(httpStatus.CREATED).json(buildResponse(httpStatus.CREATED,
+      'Website documentation created successfully', { 
+        token: finalToken,
+        documentationId: websiteDocumentation._id 
+      }
+    ));
+
   } catch (err) {
-    handleError(res, err)
+    if (!isTransactionCommitted) {
+      await session.abortTransaction();
+    }
+    handleError(res, err);
   } finally {
-    await session.endSession()
+    session.endSession();
   }
 }
 

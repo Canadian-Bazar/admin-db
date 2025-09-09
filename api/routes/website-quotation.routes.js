@@ -15,7 +15,7 @@ router.get(
   quotationsControllers.getAllWebsiteQuotationsController
 )
 router.put(
-  '/:quotationId/accept',
+  '/:websiteQuotationId/accept',
   quotationsValidators.validateAcceptQuotationStatus,
   quotationsControllers.acceptWebsiteQuotationController
    
