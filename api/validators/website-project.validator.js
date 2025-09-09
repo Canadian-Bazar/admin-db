@@ -10,7 +10,7 @@ export const validateGetWebsiteProjects = [
         .isString()
         .withMessage('Status must be a string')
         .isIn(['pending', 'in_progress', 'completed', 'cancelled' , 'payment_completed'])
-        .withMessage('Status must be one of: pending, in-progress, completed, cancelled'),
+        .withMessage('Status must be one of: pending, in_progress, completed, cancelled'),
 
 
 
@@ -142,8 +142,8 @@ export const validateUpdateProjectStatus = [
         .withMessage('Status is required')
         .isString()
         .withMessage('Status must be a string')
-        .isIn(['pending', 'in-progress', 'completed', 'cancelled'])
-        .withMessage('Status must be one of: pending, in-progress, completed, cancelled'),
+        .isIn(['pending', 'in_progress', 'completed', 'cancelled'])
+        .withMessage('Status must be one of: pending, in_progress, completed, cancelled'),
 
     check('notes')
         .optional()

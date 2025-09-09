@@ -528,7 +528,7 @@ export const completeProjectAndGeneratePaymentLinkController = async (req, res) 
     
     const paymentTokenPayload = {
       projectId: project._id,
-      sellerId: project.seller,
+      sellerId: project.seller._id,
       type: 'final_payment'
     }
     const completionToken = jwt.sign(paymentTokenPayload, process.env.FINAL_PAYMENT_SECRET, { expiresIn: '7d' })
@@ -539,6 +539,7 @@ export const completeProjectAndGeneratePaymentLinkController = async (req, res) 
     project.actualCompletionDate = new Date()
     project.completionPaymentToken = completionToken
     project.hasPaymentLink = true
+    project.linkExpiry = linkExpiry
     
     await project.save()
     
