@@ -4,6 +4,7 @@ import * as categoryController from '../controllers/category.controller.js'
 import * as categoryValidator from '../validators/category.validator.js'
 import { requireAuth } from '../middlewares/auth.middleware.js'
 import { checkPermission } from '../middlewares/permission.middleware.js'
+import { PERMISSIONS, ACTIONS } from '../../config/permissions.js'
 import multer from 'multer'
 
 const upload = multer({
@@ -17,7 +18,7 @@ router.use(trimRequest.all)
 
 router.post(
     '/',
-    checkPermission('category', 'create'),
+    checkPermission(PERMISSIONS.CATEGORY, ACTIONS.CREATE),
     upload.array('files', 1),
     categoryValidator.validateCreateCategory,
     categoryController.createCategoryController
@@ -25,43 +26,43 @@ router.post(
 
 router.get(
     '/',
-    checkPermission('category'),
+    checkPermission(PERMISSIONS.CATEGORY),
     categoryValidator.validateGetCategories,
     categoryController.getAllCategoriesController
 )
 
 router.get(
     '/tree',
-    checkPermission('category'),
+    checkPermission(PERMISSIONS.CATEGORY),
     categoryValidator.validateGetCategoryTree,
     categoryController.getCategoryTreeController
 )
 
 router.get(
     '/:categoryId',
-    checkPermission('category'),
+    checkPermission(PERMISSIONS.CATEGORY),
     categoryValidator.validateGetCategoryById,
     categoryController.getCategoryByIdController
 )
 
 router.put(
     '/:categoryId',
-    checkPermission('category', 'edit'),
+    checkPermission(PERMISSIONS.CATEGORY, ACTIONS.EDIT),
     upload.array('files' , 1) ,
     categoryValidator.validateUpdateCategory,
     categoryController.updateCategoryController
 )
 
 router.patch(
-    '/:categoryId/deactivate',
-    checkPermission('category', 'edit'),
+    '/:categoryId/delete',
+    checkPermission(PERMISSIONS.CATEGORY, ACTIONS.EDIT),
     categoryValidator.validateCategoryAction,
     categoryController.deactivateCategoryController
 )
 
 router.patch(
-    '/:categoryId/activate',
-    checkPermission('category', 'edit'),
+    '/:categoryId/delete',
+    checkPermission(PERMISSIONS.CATEGORY, ACTIONS.EDIT),
     categoryValidator.validateCategoryAction,
     categoryController.activateCategoryController
 )

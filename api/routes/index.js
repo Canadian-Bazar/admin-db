@@ -17,6 +17,12 @@ import userPermissionRoutes from '../routes/user-permission.routes.js'
 import userGroupRoutes from '../routes/user-group.routes.js'
 import userManagementRoutes from '../routes/user-management.routes.js'
 
+
+//cnc-quotes
+
+
+import cncQuotesRoutes from '../routes/cnc-quotes.routes.js'
+
 const v1Routes = express.Router()
 const router = express.Router()
 
@@ -36,6 +42,10 @@ v1Routes.use('/permissions', permissionRoutes)
 v1Routes.use('/user-permissions', userPermissionRoutes)
 v1Routes.use('/user-groups', userGroupRoutes)
 v1Routes.use('/users', userManagementRoutes)
+
+
+//CNC Quotes Routes
+v1Routes.use('/cnc-quotes', cncQuotesRoutes)
 
 router.use('/api/v1', v1Routes)
 

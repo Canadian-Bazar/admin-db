@@ -1,5 +1,6 @@
 import { check, query, param } from 'express-validator'
 import validateRequest from '../utils/validateRequest.js'
+import { validatePaginateValidator } from './paginate.validator.js'
 
 export const validateCreateUserGroup = [
   check('name')
@@ -75,22 +76,7 @@ export const validateUpdateUserGroup = [
 ]
 
 export const validateGetUserGroups = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer'),
-
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 50 })
-    .withMessage('Limit must be between 1 and 50'),
-
-  query('search')
-    .optional()
-    .isString()
-    .withMessage('Search must be a string')
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Search term must be between 1 and 100 characters'),
+  validatePaginateValidator ,
 
   query('isActive')
     .optional()
@@ -146,10 +132,12 @@ export const validateUpdateGroupPermissions = [
     .withMessage('Permissions must be an array'),
 
   check('permissions.*.permissionId')
+    .if(check('permissions').isArray({ min: 1 }))
     .isMongoId()
     .withMessage('Permission ID must be a valid MongoDB ObjectId'),
 
   check('permissions.*.grantedActions')
+    .if(check('permissions').isArray({ min: 1 }))
     .isArray({ min: 1 })
     .withMessage('Granted actions must be a non-empty array')
     .custom((actions) => {
@@ -183,6 +171,14 @@ export const validateGetGroupMembers = [
 ]
 
 export const validateGroupAction = [
+  param('groupId')
+    .isMongoId()
+    .withMessage('Group ID must be a valid MongoDB ObjectId'),
+
+  (req, res, next) => validateRequest(req, res, next)
+]
+
+export const validateDeleteUserGroup = [
   param('groupId')
     .isMongoId()
     .withMessage('Group ID must be a valid MongoDB ObjectId'),

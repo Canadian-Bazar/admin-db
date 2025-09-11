@@ -74,6 +74,7 @@ export const createCategoryController = async (req, res) => {
         image,
         isActive: true,
         ...(parentCategory && { parentCategory }),
+        ...(validatedData.city && { city: validatedData.city }),
       }],
       { session }
     );
@@ -102,7 +103,7 @@ export const createCategoryController = async (req, res) => {
 export const getAllCategoriesController = async (req, res) => {
     try {
         const validatedData = matchedData(req);
-        let { page = 1, limit = 10, search, isActive, parentCategory } = validatedData;
+        let { page = 1, limit = 10, search, isActive, parentCategory, city } = validatedData;
 
         limit = Math.min(Number(limit), 50);
         page = Number(page);
@@ -122,9 +123,11 @@ export const getAllCategoriesController = async (req, res) => {
         if (parentCategory === 'null' || parentCategory === null) {
             filter.parentCategory = null;
         } else if (parentCategory && parentCategory !== 'all') {
-
-            
             filter.parentCategory = mongoose.Types.ObjectId.createFromHexString(parentCategory);
+        }
+
+        if (city) {
+            filter.city = { $regex: city, $options: 'i' };
         }
 
         const options = {
@@ -133,11 +136,11 @@ export const getAllCategoriesController = async (req, res) => {
             populate: [
                 {
                     path: 'parentCategory',
-                    select: 'name slug'
+                    select: 'name slug city'
                 },
                 {
                     path: 'ancestors',
-                    select: 'name slug'
+                    select: 'name slug city'
                 }
             ],
             sort: { createdAt: -1 }
@@ -145,7 +148,20 @@ export const getAllCategoriesController = async (req, res) => {
 
         const categories = await Category.paginate(filter, options);
 
-        res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, categories));
+        const response = {
+            docs: categories.docs,
+            totalDocs: categories.totalDocs,
+            limit: categories.limit,
+            page: categories.page,
+            totalPages: categories.totalPages,
+            hasNextPage: categories.hasNextPage,
+            hasPrevPage: categories.hasPrevPage,
+            nextPage: categories.nextPage,
+            prevPage: categories.prevPage,
+            pagingCounter: categories.pagingCounter
+        };
+
+        res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, response));
     } catch (err) {
         handleError(res, err);
     }
@@ -215,6 +231,10 @@ export const updateCategoryController = async (req, res) => {
 
             if (description !== undefined) {
                 category.description = description;
+            }
+
+            if (validatedData.city !== undefined) {
+                category.city = validatedData.city;
             }
 
           if(req.files && req.files.length>0){

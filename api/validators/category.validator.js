@@ -24,7 +24,12 @@ export const validateCreateCategory = [
         .isMongoId()
         .withMessage('Parent category must be a valid MongoDB ObjectId'),
 
-
+    check('city')
+        .optional()
+        .isString()
+        .withMessage('City must be a string')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('City must be between 2 and 100 characters'),
 
     (req, res, next) => validateRequest(req, res, next)
 ]
@@ -44,8 +49,7 @@ export const validateGetCategories = [
         .optional()
         .isString()
         .withMessage('Search must be a string')
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Search term must be between 1 and 100 characters'),
+        ,
 
     query('isActive')
         .optional()
@@ -63,6 +67,13 @@ export const validateGetCategories = [
             }
             return true;
         }),
+
+    query('city')
+        .optional()
+        .isString()
+        .withMessage('City must be a string')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('City must be between 1 and 100 characters'),
 
     (req, res, next) => validateRequest(req, res, next)
 ]
@@ -114,6 +125,13 @@ export const validateUpdateCategory = [
         .optional()
         .isString()
         .withMessage('Image must be a string'),
+
+    check('city')
+        .optional()
+        .isString()
+        .withMessage('City must be a string')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('City must be between 2 and 100 characters'),
 
     (req, res, next) => validateRequest(req, res, next)
 ]

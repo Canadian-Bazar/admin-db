@@ -243,7 +243,18 @@ export const assignUserToGroupController = async (req, res) => {
     }).session(session)
 
     if (existingMembership) {
-      throw buildErrorObject(httpStatus.CONFLICT, 'User is already a member of this group')
+      // User is already in the group, return success instead of error
+      await session.commitTransaction()
+      
+      // Populate existing membership details
+      await existingMembership.populate([
+        { path: 'userId', select: 'fullName email' },
+        { path: 'groupId', select: 'name description' }
+      ])
+
+      return res.status(httpStatus.OK).json(
+        buildResponse(httpStatus.OK, existingMembership, 'User is already a member of this group')
+      )
     }
 
     const groupMember = new UserGroupMember({
@@ -287,7 +298,11 @@ export const removeUserFromGroupController = async (req, res) => {
     }).session(session)
 
     if (!groupMember) {
-      throw buildErrorObject(httpStatus.NOT_FOUND, 'User is not a member of this group')
+      // User was not in the group, but that's okay - return success
+      await session.commitTransaction()
+      return res.status(httpStatus.OK).json(
+        buildResponse(httpStatus.OK, { message: 'User was not a member of this group (already removed)' })
+      )
     }
 
     await session.commitTransaction()
@@ -319,8 +334,8 @@ export const updateGroupPermissionsController = async (req, res) => {
       throw buildErrorObject(httpStatus.NOT_FOUND, 'Group not found')
     }
 
-    // Validate permissions
-    if (permissions.length > 0) {
+    // Validate permissions if any are provided
+    if (permissions && permissions.length > 0) {
       const permissionIds = permissions.map(p => p.permissionId)
       const validPermissions = await Permission.find({
         _id: { $in: permissionIds },
@@ -342,7 +357,7 @@ export const updateGroupPermissionsController = async (req, res) => {
       })
     }
 
-    group.permissions = permissions
+    group.permissions = permissions || []
     await group.save({ session })
 
     await session.commitTransaction()
@@ -453,6 +468,86 @@ export const deactivateUserGroupController = async (req, res) => {
 
     res.status(httpStatus.OK).json(
       buildResponse(httpStatus.OK, group)
+    )
+
+  } catch (err) {
+    await session.abortTransaction()
+    handleError(res, err)
+  } finally {
+    session.endSession()
+  }
+}
+
+export const getUserGroupMembershipsController = async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    // Verify user exists
+    const User = (await import('../models/user.schema.js')).default
+    const user = await User.findById(userId)
+    if (!user) {
+      throw buildErrorObject(httpStatus.NOT_FOUND, 'User not found')
+    }
+
+    // Get user's group memberships
+    const memberships = await UserGroupMember.find({ userId })
+      .populate({
+        path: 'groupId',
+        select: 'name description isActive',
+        match: { isActive: true }
+      })
+      .sort({ assignedAt: -1 })
+
+    // Filter out memberships where group was not found (inactive groups)
+    const activeMemberships = memberships.filter(m => m.groupId)
+
+    const response = activeMemberships.map(membership => ({
+      _id: membership._id,
+      groupId: membership.groupId._id,
+      groupName: membership.groupId.name,
+      groupDescription: membership.groupId.description,
+      assignedAt: membership.assignedAt
+    }))
+
+    res.status(httpStatus.OK).json(
+      buildResponse(httpStatus.OK, response)
+    )
+
+  } catch (err) {
+    handleError(res, err)
+  }
+}
+
+export const deleteUserGroupController = async (req, res) => {
+  const session = await mongoose.startSession()
+
+  try {
+    const validatedData = matchedData(req)
+    const { groupId } = validatedData
+
+    await session.startTransaction()
+
+    const group = await UserGroup.findById(groupId).session(session)
+    if (!group) {
+      throw buildErrorObject(httpStatus.NOT_FOUND, 'Group not found')
+    }
+
+    // Check if group has any members
+    const memberCount = await UserGroupMember.countDocuments({ groupId }).session(session)
+    if (memberCount > 0) {
+      throw buildErrorObject(
+        httpStatus.BAD_REQUEST, 
+        'Cannot delete group with active members. Remove all members first.'
+      )
+    }
+
+    // Delete the group
+    await UserGroup.findByIdAndDelete(groupId).session(session)
+    
+    await session.commitTransaction()
+
+    res.status(httpStatus.OK).json(
+      buildResponse(httpStatus.OK, { message: 'Group deleted successfully' })
     )
 
   } catch (err) {

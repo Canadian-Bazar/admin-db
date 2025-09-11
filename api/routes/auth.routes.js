@@ -3,6 +3,7 @@ import trimRequest from 'trim-request'
 
 import * as authControllers from '../controllers/auth.controller.js'
 import * as authValidators from '../validators/auth.validator.js'
+import { requireAuth } from '../middlewares/auth.middleware.js'
 
 const router = express.Router()
 
@@ -55,7 +56,22 @@ router.get(
   authControllers.verifyTokensController
 )
 
+router.get(
+  '/verify-token',
+  requireAuth,
+  authControllers.verifyTokenController
+)
 
+router.get(
+  '/user-permissions',
+  requireAuth,
+  authControllers.getUserPermissionsController
+)
 
+router.get(
+  '/my-permissions',
+  requireAuth,
+  authControllers.getCurrentUserPermissionsController
+)
 
 export default router

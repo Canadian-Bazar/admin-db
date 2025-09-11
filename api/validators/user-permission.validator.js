@@ -115,14 +115,16 @@ export const validateBulkAssignPermissions = [
   check('permissions')
     .exists()
     .withMessage('Permissions are required')
-    .isArray({ min: 1 })
-    .withMessage('Permissions must be a non-empty array'),
+    .isArray()
+    .withMessage('Permissions must be an array'),
 
   check('permissions.*.permissionId')
+    .if(check('permissions').isArray({ min: 1 }))
     .isMongoId()
     .withMessage('Permission ID must be a valid MongoDB ObjectId'),
 
   check('permissions.*.grantedActions')
+    .if(check('permissions').isArray({ min: 1 }))
     .isArray({ min: 1 })
     .withMessage('Granted actions must be a non-empty array')
     .custom((actions) => {

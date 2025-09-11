@@ -17,7 +17,7 @@ export const validatePaginateValidator=[
 
 
   query('search')
-    .optional()
+    .optional({nullable:true})
     .isString()
     .withMessage('Search must be a string')
 

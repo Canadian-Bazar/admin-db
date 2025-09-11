@@ -57,10 +57,8 @@ export const validateGetBlogs = [
     query('search')
         .optional()
         .isString()
-        .withMessage('Search must be a string')
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Search term must be between 1 and 100 characters'),
-
+        .withMessage('Search must be a string') ,
+        
     (req, res, next) => validateRequest(req, res, next)
 ]
 

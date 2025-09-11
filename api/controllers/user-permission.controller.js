@@ -44,6 +44,11 @@ export const assignPermissionToUserController = async (req, res) => {
       permissionId
     }).session(session)
 
+
+
+          console.log("bro")
+
+
     let userPermission
     if (existingUserPermission) {
       // Update existing permission
@@ -57,12 +62,15 @@ export const assignPermissionToUserController = async (req, res) => {
         grantedActions: actionsWithView
       })
       await userPermission.save({ session })
+
     }
 
     await session.commitTransaction()
 
     // Populate permission details
     await userPermission.populate('permissionId', 'name route description module')
+
+
 
     res.status(httpStatus.CREATED).json(
       buildResponse(httpStatus.CREATED, userPermission)
@@ -153,7 +161,7 @@ export const removePermissionFromUserController = async (req, res) => {
 export const getUserPermissionsController = async (req, res) => {
   try {
     const validatedData = matchedData(req)
-    const { userId, includeGroups = true, module } = validatedData
+    const { userId, includeGroups = false, module } = validatedData
 
     // Verify user exists
     const user = await User.findById(userId).select('fullName email')
@@ -166,6 +174,8 @@ export const getUserPermissionsController = async (req, res) => {
     if (includeGroups) {
       // Get combined individual + group permissions
       effectivePermissions = await getUserEffectivePermissions(userId)
+
+    
       
       // Filter by module if specified
       if (module) {
@@ -179,7 +189,7 @@ export const getUserPermissionsController = async (req, res) => {
         },
         {
           $lookup: {
-            from: 'permissions',
+            from: 'Permissions',
             localField: 'permissionId',
             foreignField: '_id',
             as: 'permission'
@@ -209,6 +219,8 @@ export const getUserPermissionsController = async (req, res) => {
       effectivePermissions = await UserPermission.aggregate(pipeline)
     }
 
+    console.log("effectivePermission" , effectivePermissions)
+
     const response = {
       user: {
         _id: user._id,
@@ -220,8 +232,9 @@ export const getUserPermissionsController = async (req, res) => {
       includesGroupPermissions: includeGroups
     }
 
+    // ✅ CONSISTENT RESPONSE FORMAT - return permissions directly at response level
     res.status(httpStatus.OK).json(
-      buildResponse(httpStatus.OK, response)
+      buildResponse(httpStatus.OK, effectivePermissions, `User permissions retrieved successfully`)
     )
 
   } catch (err) {

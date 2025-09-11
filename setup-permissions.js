@@ -23,7 +23,7 @@ const defaultPermissions = [
   { name: 'permissions', route: '/permissions', description: 'Manage system permissions', module: 'user-management' },
   
   // Content Management Module
-  { name: 'categories', route: '/categories', description: 'Manage product/service categories', module: 'content-management' },
+  { name: 'category', route: '/categories', description: 'Manage product/service categories', module: 'content-management' },
   { name: 'blogs', route: '/blogs', description: 'Manage blog posts and content', module: 'content-management' },
   { name: 'certifications', route: '/certifications', description: 'Manage certifications', module: 'content-management' },
   

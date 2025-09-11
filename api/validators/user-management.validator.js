@@ -1,5 +1,6 @@
 import { check, query, param } from 'express-validator'
 import validateRequest from '../utils/validateRequest.js'
+import { validatePaginateValidator } from './paginate.validator.js'
 
 export const validateCreateUserWithPermissions = [
   check('fullName')
@@ -101,23 +102,7 @@ export const validateUpdateUser = [
 ]
 
 export const validateGetUsers = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Page must be a positive integer'),
-
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 50 })
-    .withMessage('Limit must be between 1 and 50'),
-
-  query('search')
-    .optional()
-    .isString()
-    .withMessage('Search must be a string')
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Search term must be between 1 and 100 characters'),
-
+ validatePaginateValidator ,
   query('roleId')
     .optional()
     .isMongoId()

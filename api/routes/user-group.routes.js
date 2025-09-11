@@ -34,6 +34,13 @@ router.get(
   userGroupController.getUserGroupByIdController
 )
 
+// Get user's group memberships
+router.get(
+  '/user/:userId/memberships',
+  checkPermission('user-groups'),
+  userGroupController.getUserGroupMembershipsController
+)
+
 // Update user group
 router.put(
   '/:groupId',
@@ -88,6 +95,14 @@ router.patch(
   checkPermission('user-groups', 'edit'),
   userGroupValidator.validateGroupAction,
   userGroupController.deactivateUserGroupController
+)
+
+// Delete user group
+router.delete(
+  '/:groupId',
+  checkPermission('user-groups', 'delete'),
+  userGroupValidator.validateDeleteUserGroup,
+  userGroupController.deleteUserGroupController
 )
 
 export default router

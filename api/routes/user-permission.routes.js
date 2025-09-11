@@ -42,6 +42,14 @@ router.get(
   userPermissionController.getUserPermissionsController
 )
 
+// Get user effective permissions (direct route for frontend)
+router.get(
+  '/:userId',
+  checkPermission('user-permissions'),
+  userPermissionValidator.validateGetUserPermissions,
+  userPermissionController.getUserPermissionsController
+)
+
 // Bulk assign permissions to user
 router.post(
   '/bulk-assign',

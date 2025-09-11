@@ -23,7 +23,6 @@ export const createUserWithPermissionsController = async (req, res) => {
       fullName, 
       email, 
       password, 
-      roleId,
       permissions = [], 
       groups = [] 
     } = validatedData
@@ -36,31 +35,18 @@ export const createUserWithPermissionsController = async (req, res) => {
       throw buildErrorObject(httpStatus.CONFLICT, 'User already exists with this email')
     }
 
-    // Get default role if not provided
-    let userRoleId = roleId
-    if (!userRoleId) {
-      const defaultRole = await Roles.findOne({ role: 'user' }).session(session)
-      if (!defaultRole) {
-        throw buildErrorObject(
-          httpStatus.INTERNAL_SERVER_ERROR,
-          'Default user role not found'
-        )
-      }
-      userRoleId = defaultRole._id
-    } else {
-      // Verify provided role exists
-      const role = await Roles.findById(roleId).session(session)
-      if (!role) {
-        throw buildErrorObject(httpStatus.BAD_REQUEST, 'Invalid role ID')
-      }
+    // Always assign 'admin' role for all new users
+    const adminRole = await Roles.findOne({ role: 'admin' }).session(session)
+    if (!adminRole) {
+      throw buildErrorObject(httpStatus.INTERNAL_SERVER_ERROR, 'Admin role not found')
     }
 
-    // Create user
+    // Create user with admin role
     const user = new User({
       fullName,
       email,
       password,
-      roleId: userRoleId
+      roleId: adminRole._id
     })
 
     await user.save({ session })

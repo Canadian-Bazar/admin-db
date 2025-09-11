@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename)
 const api = express()
 const rateLimit = expressRateLimit({
   statusCode: httpStatus.TOO_MANY_REQUESTS,
-  limit: 40,
+  limit: 200,
   message: 'TOO_MANY_REQUESTS',
   windowMs: 10 * 60 * 1000,
 })

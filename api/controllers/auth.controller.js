@@ -15,6 +15,7 @@ import generateForgotToken from '../utils/generate-forgot-token.js'
 import generateTokens from '../utils/generateTokens.js'
 import handleError from '../utils/handleError.js'
 import isIDGood from '../utils/isIDGood.js'
+import getUserEffectivePermissions from '../utils/getUserEffectivePermissions.js'
 
 /**
  * Controller: signupController
@@ -122,19 +123,35 @@ export const loginController = async (req, res) => {
     // Add role for JWT token
     const userWithRole = { ...user,role:userRole }
     const { accessToken, refreshToken } = generateTokens(userWithRole)
-   
+
+    // Get user permissions and super admin flag
+    const isSuperAdmin = userRole === 'super_admin'
+    
+    const responseData = {
+      ...user,
+      isSuperAdmin
+    }
+
+    // Only add permissions for non-super admin users
+    if (!isSuperAdmin) {
+      responseData.permissions = await getUserEffectivePermissions(user._id)
+    }
 
     res
       .cookie('adminAccessToken', accessToken, {
-        httpOnly: process.env.NODE_ENV === 'development',
-        secure: !process.env.NODE_ENV === 'development',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
       })
       .cookie('adminRefreshToken', refreshToken, {
-        httpOnly: process.env.NODE_ENV === 'development',
-        secure: !process.env.NODE_ENV === 'development',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       })
       .status(httpStatus.ACCEPTED)
-      .json(buildResponse(httpStatus.ACCEPTED, user))
+      .json(buildResponse(httpStatus.ACCEPTED, responseData))
 
   } catch (err) {
     handleError(res, err)
@@ -157,12 +174,14 @@ export const logoutController = async (req, res) => {
   try {
     res
       .clearCookie('adminAccessToken', {
-        httpOnly: process.env.NODE_ENV === 'development',
-        secure: !process.env.NODE_ENV === 'development',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
       })
       .clearCookie('adminRefreshToken', {
-        httpOnly: process.env.NODE_ENV === 'development',
-        secure: !process.env.NODE_ENV === 'development',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
       })
       .status(httpStatus.NO_CONTENT)
       .json(buildResponse(httpStatus.NO_CONTENT))
@@ -229,8 +248,9 @@ export const verifyTokensController = async (req, res) => {
           res
             .cookie('adminAccessToken', accessToken, {
               httpOnly: true,
-              secure,
-            
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              maxAge: 24 * 60 * 60 * 1000 // 24 hours
             })
             .status(httpStatus.CREATED)
             .json(buildResponse(httpStatus.CREATED, {
@@ -522,6 +542,142 @@ export const resetPasswordController = async(req , res)=>{
 
   }catch(err){
     handleError(res ,err)
+  }
+}
+
+/**
+ * Controller: getUserPermissionsController
+ * Description: Gets all permissions available to the currently authenticated user
+ * 
+ * Response:
+ * - On Success: Returns list of all permissions with their granted actions
+ * - On Failure: Returns an error response
+ * 
+ * Steps:
+ * 1. Get user ID from authenticated request
+ * 2. Fetch user's effective permissions (individual + group permissions)
+ * 3. Return formatted permissions list
+ */
+export const getUserPermissionsController = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      throw buildErrorObject(httpStatus.UNAUTHORIZED, 'User not authenticated')
+    }
+
+    // Get user details
+    const user = await User.findById(req.user._id).select('fullName email').lean()
+    const isSuperAdmin = req.user.role === 'super_admin'
+
+    // For super admin, return all available permissions
+    if (isSuperAdmin) {
+      res.status(httpStatus.OK).json(
+        buildResponse(httpStatus.OK, {
+          permissions: 'all',
+          isSuperAdmin: true,
+          user: user,
+          message: 'Super admin has access to all permissions'
+        })
+      )
+      return
+    }
+
+    const userId = req.user._id
+    const userPermissions = await getUserEffectivePermissions(userId)
+
+    res.status(httpStatus.OK).json(
+      buildResponse(httpStatus.OK, {
+        permissions: userPermissions,
+        isSuperAdmin: false,
+        user: user,
+        totalPermissions: userPermissions.length
+      })
+    )
+
+  } catch (err) {
+    handleError(res, err)
+  }
+}
+
+/**
+ * Controller: verifyTokenController
+ * Description: Verifies the current user's token and returns user info with permissions
+ * 
+ * Response:
+ * - On Success: Returns user data with validation confirmation
+ * - On Failure: Returns authentication error
+ */
+export const verifyTokenController = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      throw buildErrorObject(httpStatus.UNAUTHORIZED, 'Token invalid or expired')
+    }
+
+    // Get fresh user details
+    const user = await User.findById(req.user._id)
+      .select('fullName email roleId')
+      .populate('roleId', 'role')
+      .lean()
+
+    if (!user) {
+      throw buildErrorObject(httpStatus.NOT_FOUND, 'User not found')
+    }
+
+    // Get user role and super admin flag (same as login response)
+    const userRole = user.roleId.role
+    const isSuperAdmin = userRole === 'super_admin'
+    
+    const responseData = {
+      ...user,
+      isSuperAdmin
+    }
+
+    // Always add permissions for sidebar filtering
+    if (!isSuperAdmin) {
+      responseData.permissions = await getUserEffectivePermissions(user._id)
+    }
+
+    res.status(httpStatus.OK).json(
+      buildResponse(httpStatus.OK, {
+        user: responseData,
+        isValid: true,
+        message: 'Token verified successfully'
+      })
+    )
+
+  } catch (err) {
+    handleError(res, err)
+  }
+}
+
+// Simple API just for getting current user permissions (for sidebar)
+export const getCurrentUserPermissionsController = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      throw buildErrorObject(httpStatus.UNAUTHORIZED, 'Token invalid or expired')
+    }
+
+    const user = await User.findById(req.user._id).select('roleId').populate('roleId', 'role').lean()
+    if (!user) {
+      throw buildErrorObject(httpStatus.NOT_FOUND, 'User not found')
+    }
+
+    const isSuperAdmin = user.roleId.role === 'super_admin'
+    
+    let permissions = []
+    if (!isSuperAdmin) {
+      permissions = await getUserEffectivePermissions(req.user._id)
+    }
+
+    res.status(httpStatus.OK).json(
+      buildResponse(httpStatus.OK, {
+        isSuperAdmin,
+        permissions,
+        message: 'Permissions fetched successfully'
+      })
+    )
+
+  } catch (err) {
+    handleError(res, err)
   }
 }
 
