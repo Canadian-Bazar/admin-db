@@ -89,6 +89,13 @@ export const validateUpdateProject = [
         .isLength({ max: 5000 })
         .withMessage('Report2 cannot exceed 5000 characters'),
 
+    check('additionalDetails')
+        .optional()
+        .isString()
+        .withMessage('Additional details must be a string')
+        .isLength({ max: 5000 })
+        .withMessage('Additional details cannot exceed 5000 characters'),
+
 
 
 

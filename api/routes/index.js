@@ -8,6 +8,7 @@ import certificationRoutes from '../routes/certification.routes.js'
 import blogsRoutes from '../routes/blogs.routes.js'
 import websiteQuotationRoutes from '../routes/website-quotation.routes.js'
 import websiteProjectRoutes from '../routes/website-project.routes.js'
+import websiteDocumentationRoutes from '../routes/website-documentation.routes.js'
 import subscriptionTemplatesRoutes from '../routes/subscription-templates.routes.js'
 import subscriptionVersionsRoutes from '../routes/subscription-versions.routes.js'
 import sellerRoutes from '../routes/seller.routes.js'
@@ -34,6 +35,7 @@ v1Routes.use('/certification', certificationRoutes)
 v1Routes.use('/blogs', blogsRoutes)
 v1Routes.use('/quotations', websiteQuotationRoutes)
 v1Routes.use('/website-projects', websiteProjectRoutes)
+v1Routes.use('/website-documentation', websiteDocumentationRoutes)
 v1Routes.use('/subscription-templates', subscriptionTemplatesRoutes)
 v1Routes.use('/subscription-versions', subscriptionVersionsRoutes)
 
