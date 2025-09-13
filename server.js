@@ -50,7 +50,7 @@ init().then((dbStatus) => {
   api.use(cookieParser())
 api.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization' ,'x-user-role'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'], // proper array

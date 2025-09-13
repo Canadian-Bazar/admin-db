@@ -25,7 +25,7 @@ export const checkPermission = (permissionName, action = null) => {
       console.log(req.user)
 
 
-      if(req.user.role==='super_admin'){
+      if(req.user.isSuperAdmin){
         next()
         return
       }

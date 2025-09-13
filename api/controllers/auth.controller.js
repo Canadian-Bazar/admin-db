@@ -120,12 +120,13 @@ export const loginController = async (req, res) => {
     user.loginAttempts = 0
     await user.save()
     user = await User.findById(user._id).lean()
+    const isSuperAdmin = userRole === 'super_admin'
+
     // Add role for JWT token
-    const userWithRole = { ...user,role:userRole }
+    const userWithRole = { ...user,role:'admin' ,  isSuperAdmin }
     const { accessToken, refreshToken } = generateTokens(userWithRole)
 
     // Get user permissions and super admin flag
-    const isSuperAdmin = userRole === 'super_admin'
     
     const responseData = {
       ...user,
@@ -240,7 +241,8 @@ export const verifyTokensController = async (req, res) => {
             email: user.email,
             fullName: user.fullName,
             roleId: user.roleId,
-            role: 'admin'
+            role: 'admin' ,
+            isSuperAdmin: user.isSuperAdmin
           }
 
           const { accessToken } = generateTokens(user)

@@ -86,6 +86,9 @@ export const getAllWebsiteProjectsController = async (req, res) => {
         paymentStatus: 1,
         projectStatus: 1,
         createdAt: 1,
+        hasPaymentLink: 1,
+        linkExpiry: 1,
+        finalPaymentCompleted: 1,
         'seller.companyName': 1,
         'seller.email': 1,
         'seller.phone': 1,
@@ -524,6 +527,11 @@ export const completeProjectAndGeneratePaymentLinkController = async (req, res) 
     
     if (project.finalPaymentCompleted) {
       throw buildErrorObject(httpStatus.BAD_REQUEST, 'Final payment already completed')
+    }
+    
+    // Check if there's already a valid payment link
+    if (project.hasPaymentLink && project.linkExpiry && project.linkExpiry > new Date()) {
+      throw buildErrorObject(httpStatus.BAD_REQUEST, `Payment link already exists and is valid until ${project.linkExpiry.toISOString()}`)
     }
     
     const paymentTokenPayload = {
