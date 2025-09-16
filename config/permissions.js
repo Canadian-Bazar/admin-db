@@ -1,5 +1,7 @@
 export const PERMISSIONS = {
   CATEGORY: 'category',
+  PRODUCT: 'product',
+  SERVICE: 'service',
   PERMISSIONS: 'permissions',
   USER_GROUPS: 'user-groups',
   USER_PERMISSIONS: 'user-permissions',

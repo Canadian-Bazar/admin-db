@@ -1,0 +1,638 @@
+{
+  "info": {
+    "name": "Product & Service Management API",
+    "description": "Complete API collection for Product and Service management with CRUD operations, search, and filtering capabilities",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "serviceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/category?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["category"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Electronics",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Electronic products and gadgets",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Mumbai",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/category",
+              "host": ["{{baseUrl}}"],
+              "path": ["category"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', response.data.product._id);",
+                  "    pm.collectionVariables.set('categoryId', response.data.product.category);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "iPhone 15 Pro",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Latest iPhone with advanced camera system and A17 Pro chip",
+                  "type": "text"
+                },
+                {
+                  "key": "shortDescription",
+                  "value": "Latest iPhone with advanced features",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "99999",
+                  "type": "text",
+                  "description": "Optional - Product price"
+                },
+                {
+                  "key": "originalPrice",
+                  "value": "109999",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "{{categoryId}}",
+                  "type": "text",
+                  "description": "Optional - Category ID"
+                },
+                {
+                  "key": "categoryName",
+                  "value": "Electronics",
+                  "type": "text",
+                  "description": "Optional - Category Name (alternative to category ID)"
+                },
+                {
+                  "key": "stock",
+                  "value": "50",
+                  "type": "text"
+                },
+                {
+                  "key": "weight",
+                  "value": "187",
+                  "type": "text"
+                },
+                {
+                  "key": "dimensions[length]",
+                  "value": "14.67",
+                  "type": "text"
+                },
+                {
+                  "key": "dimensions[width]",
+                  "value": "7.15",
+                  "type": "text"
+                },
+                {
+                  "key": "dimensions[height]",
+                  "value": "0.83",
+                  "type": "text"
+                },
+                {
+                  "key": "tags",
+                  "value": "[\"smartphone\", \"apple\", \"mobile\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "features",
+                  "value": "[\"5G\", \"Face ID\", \"Wireless Charging\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "specifications",
+                  "value": "[{\"name\": \"Storage\", \"value\": \"128GB\"}, {\"name\": \"RAM\", \"value\": \"8GB\"}]",
+                  "type": "text"
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Mumbai",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&limit=10&isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "1000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "100000"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "price"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/search?q=iPhone&category={{categoryId}}&minPrice=50000&maxPrice=150000&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "iPhone"
+                },
+                {
+                  "key": "category",
+                  "value": "{{categoryId}}"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "50000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "150000"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productId}}", "info"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Product Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('serviceId', response.data.service._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Website Development",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Complete website development service including design, development, and deployment",
+                  "type": "text"
+                },
+                {
+                  "key": "shortDescription",
+                  "value": "Professional website development service",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "50000",
+                  "type": "text"
+                },
+                {
+                  "key": "originalPrice",
+                  "value": "60000",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "{{categoryId}}",
+                  "type": "text",
+                  "description": "Optional - Category ID"
+                },
+                {
+                  "key": "categoryName",
+                  "value": "Services",
+                  "type": "text",
+                  "description": "Optional - Category Name (alternative to category ID)"
+                },
+                {
+                  "key": "duration[value]",
+                  "value": "30",
+                  "type": "text"
+                },
+                {
+                  "key": "duration[unit]",
+                  "value": "days",
+                  "type": "text"
+                },
+                {
+                  "key": "serviceType",
+                  "value": "one-time",
+                  "type": "text"
+                },
+                {
+                  "key": "maxBookings",
+                  "value": "5",
+                  "type": "text"
+                },
+                {
+                  "key": "tags",
+                  "value": "[\"web development\", \"design\", \"programming\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "requirements",
+                  "value": "[\"Project requirements document\", \"Design mockups\", \"Content ready\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "deliverables",
+                  "value": "[\"Responsive website\", \"Admin panel\", \"SEO optimization\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "features",
+                  "value": "[\"Mobile responsive\", \"Fast loading\", \"SEO friendly\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Mumbai",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"]
+            }
+          }
+        },
+        {
+          "name": "Get All Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services?page=1&limit=10&isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["services"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true"
+                },
+                {
+                  "key": "serviceType",
+                  "value": "one-time"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "10000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "100000"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "price"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/search?q=website&category={{categoryId}}&serviceType=one-time&minPrice=20000&maxPrice=80000&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "website"
+                },
+                {
+                  "key": "category",
+                  "value": "{{categoryId}}"
+                },
+                {
+                  "key": "serviceType",
+                  "value": "one-time"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "20000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "80000"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/services/{{serviceId}}/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{serviceId}}", "info"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Service Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/services/{{serviceId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["services", "{{serviceId}}", "status"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
