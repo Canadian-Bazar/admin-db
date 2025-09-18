@@ -26,7 +26,6 @@ const ServiceSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true,
         min: 0
     },
     originalPrice: {
@@ -42,7 +41,6 @@ const ServiceSchema = new mongoose.Schema({
     category: {
         type: mongoose.Types.ObjectId,
         ref: 'Category',
-        required: false
     },
     categoryName: {
         type: String,
@@ -63,10 +61,9 @@ const ServiceSchema = new mongoose.Schema({
         type: String
     },
     duration: {
-        value: { type: Number, required: true, min: 1 },
+        value: { type: Number, min: 1 },
         unit: { 
             type: String, 
-            required: true, 
             enum: ['minutes', 'hours', 'days', 'weeks', 'months'] 
         }
     },
