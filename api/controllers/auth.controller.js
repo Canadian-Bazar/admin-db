@@ -142,13 +142,11 @@ export const loginController = async (req, res) => {
       .cookie('adminAccessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       })
       .cookie('adminRefreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       })
       .status(httpStatus.ACCEPTED)
@@ -177,12 +175,10 @@ export const logoutController = async (req, res) => {
       .clearCookie('adminAccessToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
       })
       .clearCookie('adminRefreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
       })
       .status(httpStatus.NO_CONTENT)
       .json(buildResponse(httpStatus.NO_CONTENT))
