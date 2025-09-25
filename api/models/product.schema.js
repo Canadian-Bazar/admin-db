@@ -6,12 +6,13 @@ const ProductSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        index: true
     },
     slug: {
         type: String,
-        required: true,
         unique: true,
+        index: true,
         trim: true,
         lowercase: true
     },
@@ -56,12 +57,11 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    images: [{
-        type: String
-    }],
+    images: [String],
     thumbnail: {
         type: String
     },
+    videos: [String],
     sku: {
         type: String,
         unique: true,
@@ -99,7 +99,8 @@ const ProductSchema = new mongoose.Schema({
     }],
     isActive: {
         type: Boolean,
-        default: true
+        default: true,
+        index: true
     },
     isFeatured: {
         type: Boolean,
@@ -107,11 +108,24 @@ const ProductSchema = new mongoose.Schema({
     },
     seller: {
         type: mongoose.Types.ObjectId,
-        ref: 'Seller'
+        ref: 'Seller',
+        required: true,
+        index: true
     },
     rating: {
         average: { type: Number, default: 0, min: 0, max: 5 },
         count: { type: Number, default: 0, min: 0 }
+    },
+    avgRating: {
+        type: Number,
+        default: 0.0,
+        min: 0,
+        max: 5
+    },
+    ratingsCount: {
+        type: Number,
+        default: 0,
+        min: 0
     },
     reviews: [{
         user: { type: mongoose.Types.ObjectId, ref: 'User' },
@@ -139,14 +153,91 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         enum: ['draft', 'published', 'archived'],
         default: 'draft'
+    },
+    about: [String],
+    services: [String],
+    descriptionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProductDescription'
+    },
+    minPrice: {
+        type: Number
+    },
+    unitPrice: {
+        type: Number
+    },
+    maxPrice: {
+        type: Number
+    },
+    moq: {
+        type: Number,
+        default: null
+    },
+    categoryId: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Category',
+        required: true
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
+    deliveryDays: {
+        type: Number,
+        required: true,
+        default: 1
+    },
+    isCustomizable: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
+    isComplete: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    completionPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    incompleteSteps: [{
+        type: String,
+        enum: ['productInfo', 'attributes', 'images', 'pricing', 'services']
+    }],
+    stepStatus: {
+        productInfo: { type: Boolean, default: false },
+        attributes: { type: Boolean, default: false },
+        images: { type: Boolean, default: false },
+        pricing: { type: Boolean, default: false },
+        services: { type: Boolean, default: false }
+    },
+    brochure: {
+        type: String,
+        default: null
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
+    isArchived: {
+        type: Boolean,
+        default: false,
+        required: true
     }
-}, { 
-    timestamps: true, 
-    collection: 'Product' 
+}, {
+    timestamps: true,
+    collection: 'Product'
 })
 
-// Indexes for better performance
+// Indexes (superset to support all use-cases)
 ProductSchema.index({ name: 'text', description: 'text', tags: 'text' })
+ProductSchema.index({ isVerified: 1 })
+ProductSchema.index({ avgRating: -1 })
 ProductSchema.index({ category: 1, isActive: 1 })
 ProductSchema.index({ price: 1 })
 ProductSchema.index({ rating: -1 })
@@ -154,5 +245,37 @@ ProductSchema.index({ createdAt: -1 })
 
 ProductSchema.plugin(paginate)
 ProductSchema.plugin(aggregatePaginate)
+
+ProductSchema.pre('save', async function(next) {
+    if (!this.isModified('name')) {
+        return next()
+    }
+
+    const baseSlug = this.name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+
+    try {
+        let slug = baseSlug
+        let count = 0
+        let existingProduct
+
+        do {
+            if (count > 0) {
+                slug = `${baseSlug}-${count}`
+            }
+            existingProduct = await mongoose.models.Product.findOne({ slug })
+            count++
+        } while (existingProduct)
+
+        this.slug = slug
+        next()
+    } catch (error) {
+        next(error)
+    }
+})
 
 export default mongoose.model('Product', ProductSchema)
