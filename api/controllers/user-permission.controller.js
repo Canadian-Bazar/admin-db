@@ -161,7 +161,14 @@ export const removePermissionFromUserController = async (req, res) => {
 export const getUserPermissionsController = async (req, res) => {
   try {
     const validatedData = matchedData(req)
+
+    
     const { userId, includeGroups = false, module } = validatedData
+
+    console.log("includeGroups" , includeGroups)
+
+
+
 
     // Verify user exists
     const user = await User.findById(userId).select('fullName email')
@@ -174,6 +181,9 @@ export const getUserPermissionsController = async (req, res) => {
     if (includeGroups) {
       // Get combined individual + group permissions
       effectivePermissions = await getUserEffectivePermissions(userId)
+
+
+      console.log("effectivePermissions" , effectivePermissions)
 
     
       
@@ -248,6 +258,9 @@ export const bulkAssignPermissionsController = async (req, res) => {
   try {
     const validatedData = matchedData(req)
     const { userId, permissions } = validatedData
+
+
+    console.log("permissions" , permissions)
 
     await session.startTransaction()
 

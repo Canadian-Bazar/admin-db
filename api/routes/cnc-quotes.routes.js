@@ -13,14 +13,14 @@ router.use(trimRequest.all)
 
 router.get(
     '/',
-    checkPermission(PERMISSIONS.ADMIN),
+    checkPermission(PERMISSIONS.CNC_QUOTES),
     cncQuotesValidator.validateGetCNCQuotes,
     cncQuotesController.getAllCNCQuotesController
 )
 
 router.get(
     '/:quoteId',
-    checkPermission(PERMISSIONS.ADMIN),
+    checkPermission(PERMISSIONS.CNC_QUOTES),
     cncQuotesValidator.validateGetCNCQuoteById,
     cncQuotesController.getCNCQuoteByIdController
 )

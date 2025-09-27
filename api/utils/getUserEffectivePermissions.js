@@ -1,6 +1,7 @@
 import UserPermission from '../models/user-permission.schema.js'
 import UserGroupMember from '../models/user-group-member.schema.js'
 import UserGroup from '../models/user-group.schema.js'
+import mongoose from 'mongoose'
 
 /**
  * Get user's effective permissions (individual + group permissions combined)
@@ -18,7 +19,7 @@ const getUserEffectivePermissions = async (userId, permissionName = null) => {
     // Match user's individual permissions
     const userPermissions = await UserPermission.aggregate([
       {
-        $match: { userId: userId }
+        $match: {  userId: new mongoose.Types.ObjectId(userId)  }
       },
       {
         $lookup: {

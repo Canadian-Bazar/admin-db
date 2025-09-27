@@ -1,11 +1,12 @@
 export const PERMISSIONS = {
   CATEGORY: 'category',
-  PRODUCT: 'product',
-  SERVICE: 'service',
+  PRODUCT: 'products',
+  SERVICE: 'services',
   PERMISSIONS: 'permissions',
   USER_GROUPS: 'user-groups',
   USER_PERMISSIONS: 'user-permissions',
-  USERS: 'users'
+  USERS: 'users' ,
+  CNC_QUOTES:'cnc-quotes'
 }
 
 export const ACTIONS = {
