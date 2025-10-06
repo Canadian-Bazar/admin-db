@@ -6,6 +6,7 @@ export const PERMISSIONS = {
   USER_GROUPS: 'user-groups',
   USER_PERMISSIONS: 'user-permissions',
   USERS: 'users' ,
+  SEO: 'seo',
   CNC_QUOTES:'cnc-quotes'
 }
 
@@ -14,4 +15,5 @@ export const ACTIONS = {
   READ: 'read',
   EDIT: 'edit',
   DELETE: 'delete'
+
 }

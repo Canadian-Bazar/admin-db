@@ -13,6 +13,7 @@ import websiteProjectRoutes from '../routes/website-project.routes.js'
 import websiteDocumentationRoutes from '../routes/website-documentation.routes.js'
 import subscriptionTemplatesRoutes from '../routes/subscription-templates.routes.js'
 import subscriptionVersionsRoutes from '../routes/subscription-versions.routes.js'
+import seoRoutes from '../routes/seo.routes.js'
 import sellerRoutes from '../routes/seller.routes.js'
 // Permission Management Routes
 import permissionRoutes from '../routes/permission.routes.js'
@@ -42,6 +43,7 @@ v1Routes.use('/website-projects', websiteProjectRoutes)
 v1Routes.use('/website-documentation', websiteDocumentationRoutes)
 v1Routes.use('/subscription-templates', subscriptionTemplatesRoutes)
 v1Routes.use('/subscription-versions', subscriptionVersionsRoutes)
+v1Routes.use('/seo', seoRoutes)
 
 // Permission Management Routes
 v1Routes.use('/permissions', permissionRoutes)

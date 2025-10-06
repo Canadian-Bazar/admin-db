@@ -26,6 +26,7 @@ const defaultPermissions = [
   { name: 'category', route: '/categories', description: 'Manage product/service categories', module: 'content-management' },
   { name: 'blogs', route: '/blogs', description: 'Manage blog posts and content', module: 'content-management' },
   { name: 'certifications', route: '/certifications', description: 'Manage certifications', module: 'content-management' },
+  { name: 'seo', route: '/seo', description: 'Manage global SEO and header settings', module: 'content-management' },
   
   // Website Management Module
   { name: 'website-projects', route: '/website-projects', description: 'Manage website development projects', module: 'website-management' },
