@@ -154,3 +154,34 @@ export const validateGetCategoryTree = [
 
     (req, res, next) => validateRequest(req, res, next)
 ]
+
+export const validateGetMainCategories = [
+    query('page')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('Page must be a positive integer'),
+
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 50 })
+        .withMessage('Limit must be between 1 and 50'),
+
+    query('search')
+        .optional()
+        .isString()
+        .withMessage('Search must be a string'),
+
+    query('isActive')
+        .optional()
+        .isIn(['true', 'false', true, false])
+        .withMessage('isActive must be true or false'),
+
+    query('city')
+        .optional()
+        .isString()
+        .withMessage('City must be a string')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('City must be between 1 and 100 characters'),
+
+    (req, res, next) => validateRequest(req, res, next)
+]

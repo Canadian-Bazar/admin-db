@@ -39,6 +39,13 @@ router.get(
 )
 
 router.get(
+    '/main',
+    checkPermission(PERMISSIONS.CATEGORY),
+    categoryValidator.validateGetMainCategories,
+    categoryController.getMainCategoriesController
+)
+
+router.get(
     '/:categoryId',
     checkPermission(PERMISSIONS.CATEGORY),
     categoryValidator.validateGetCategoryById,

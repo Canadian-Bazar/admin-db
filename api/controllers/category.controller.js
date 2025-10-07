@@ -434,3 +434,72 @@ export const getCategoryTreeController = async (req, res) => {
         handleError(res, err);
     }
 };
+
+export const getMainCategoriesController = async (req, res) => {
+    try {
+        const validatedData = matchedData(req);
+        let { page = 1, limit = 10, search, isActive, city } = validatedData;
+
+        limit = Math.min(Number(limit), 50);
+        page = Number(page);
+
+        const filter = {
+            parentCategory: null // Only top-level categories
+        };
+
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        if (isActive !== undefined) {
+            filter.isActive = isActive === 'true' || isActive === true;
+        }
+
+        if (city) {
+            filter.city = { $regex: city, $options: 'i' };
+        }
+
+        const options = {
+            page,
+            limit,
+            sort: { name: 1 }
+        };
+
+        const categories = await Category.paginate(filter, options);
+
+        // Get child count for each main category
+        const categoriesWithChildCount = await Promise.all(
+            categories.docs.map(async (category) => {
+                const childCount = await Category.countDocuments({
+                    parentCategory: category._id,
+                    isActive: true
+                });
+                
+                return {
+                    ...category.toObject(),
+                    childCount
+                };
+            })
+        );
+
+        const response = {
+            docs: categoriesWithChildCount,
+            totalDocs: categories.totalDocs,
+            limit: categories.limit,
+            page: categories.page,
+            totalPages: categories.totalPages,
+            hasNextPage: categories.hasNextPage,
+            hasPrevPage: categories.hasPrevPage,
+            nextPage: categories.nextPage,
+            prevPage: categories.prevPage,
+            pagingCounter: categories.pagingCounter
+        };
+
+        res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, response));
+    } catch (err) {
+        handleError(res, err);
+    }
+};

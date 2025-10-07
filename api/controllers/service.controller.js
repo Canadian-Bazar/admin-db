@@ -278,7 +278,7 @@ export const getAllServicesController = async (req, res) => {
                 },
                 {
                     path: 'seller',
-                    select: 'name email'
+                    select: 'companyName email'
                 }
             ],
             sort: sortOptions
@@ -300,6 +300,7 @@ export const getAllServicesController = async (req, res) => {
                 _id: service._id,
                 name: service.name,
                 status: service.isActive ? 'Active' : 'Inactive',
+                sellerName: service.seller?.companyName || 'N/A',
                 created
             }
         })
