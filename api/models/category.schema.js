@@ -26,8 +26,7 @@ const CategorySchema = new mongoose.Schema({
     }  ,
     parentCategory:{
         type:mongoose.Types.ObjectId ,
-        ref:"Category" ,
-        
+        ref:"Category"
     } ,
 
     ancestors:[

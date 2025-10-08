@@ -61,17 +61,24 @@ router.put(
 )
 
 router.patch(
-    '/:categoryId/delete',
+    '/:categoryId/deactivate',
     checkPermission(PERMISSIONS.CATEGORY, ACTIONS.EDIT),
     categoryValidator.validateCategoryAction,
     categoryController.deactivateCategoryController
 )
 
 router.patch(
-    '/:categoryId/delete',
+    '/:categoryId/activate',
     checkPermission(PERMISSIONS.CATEGORY, ACTIONS.EDIT),
     categoryValidator.validateCategoryAction,
     categoryController.activateCategoryController
+)
+
+router.delete(
+    '/:categoryId',
+    checkPermission(PERMISSIONS.CATEGORY, ACTIONS.DELETE),
+    categoryValidator.validateCategoryAction,
+    categoryController.deleteCategoryController
 )
 
 

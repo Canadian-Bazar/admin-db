@@ -183,7 +183,7 @@ export const getCategoryByIdController = async (req, res) => {
         const childCategories = await Category.find({
             parentCategory: categoryId,
             isActive: true
-        }).select('name slug description image');
+        }).select('name slug description image isActive');
 
         const response = {
             ...category.toObject(),
@@ -395,6 +395,56 @@ export const activateCategoryController = async (req, res) => {
     }
 };
 
+export const deleteCategoryController = async (req, res) => {
+    const session = await mongoose.startSession();
+    
+    try {
+        await session.withTransaction(async () => {
+            const validatedData = matchedData(req);
+            const { categoryId } = validatedData;
+
+            const category = await Category.findById(categoryId).session(session);
+            if (!category) {
+                throw buildErrorObject(httpStatus.NOT_FOUND, 'Category not found');
+            }
+
+            // Check if category has child categories
+            const childCategories = await Category.find({
+                parentCategory: categoryId
+            }).session(session);
+
+            if (childCategories.length > 0) {
+                throw buildErrorObject(
+                    httpStatus.BAD_REQUEST, 
+                    'Cannot delete category with child categories. Please delete or move child categories first.'
+                );
+            }
+
+            // Check if category is being used by products or services
+            // Note: You may need to add these checks based on your product/service models
+            // const productsUsingCategory = await Product.countDocuments({ category: categoryId }).session(session);
+            // if (productsUsingCategory > 0) {
+            //     throw buildErrorObject(httpStatus.BAD_REQUEST, 'Cannot delete category that is being used by products');
+            // }
+
+            // Delete the category
+            await Category.findByIdAndDelete(categoryId).session(session);
+
+            req.responseData = {
+                message: 'Category deleted successfully'
+            };
+        });
+
+        res.status(httpStatus.OK).json(
+            buildResponse(httpStatus.OK, req.responseData)
+        );
+
+    } catch (err) {
+        handleError(res, err);
+    } finally {
+        await session.endSession();
+    }
+};
 
 
 export const getCategoryTreeController = async (req, res) => {
