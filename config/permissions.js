@@ -7,7 +7,8 @@ export const PERMISSIONS = {
   USER_PERMISSIONS: 'user-permissions',
   USERS: 'users' ,
   SEO: 'seo',
-  CNC_QUOTES:'cnc-quotes'
+  CNC_QUOTES:'cnc-quotes',
+  INVOICES: 'invoices'
 }
 
 export const ACTIONS = {

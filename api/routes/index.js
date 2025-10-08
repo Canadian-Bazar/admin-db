@@ -26,6 +26,7 @@ import userManagementRoutes from '../routes/user-management.routes.js'
 
 
 import cncQuotesRoutes from '../routes/cnc-quotes.routes.js'
+import adminInvoiceRoutes from '../routes/invoice.routes.js'
 
 const v1Routes = express.Router()
 const router = express.Router()
@@ -54,6 +55,7 @@ v1Routes.use('/users', userManagementRoutes)
 
 //CNC Quotes Routes
 v1Routes.use('/cnc-quotes', cncQuotesRoutes)
+v1Routes.use('/invoices', adminInvoiceRoutes)
 
 router.use('/api/v1', v1Routes)
 
