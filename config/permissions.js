@@ -8,7 +8,8 @@ export const PERMISSIONS = {
   USERS: 'users' ,
   SEO: 'seo',
   CNC_QUOTES:'cnc-quotes',
-  INVOICES: 'invoices'
+  INVOICES: 'invoices',
+  LANDING_FEATURES: 'landing-features'
 }
 
 export const ACTIONS = {

@@ -15,6 +15,7 @@ import subscriptionTemplatesRoutes from '../routes/subscription-templates.routes
 import subscriptionVersionsRoutes from '../routes/subscription-versions.routes.js'
 import seoRoutes from '../routes/seo.routes.js'
 import sellerRoutes from '../routes/seller.routes.js'
+import landingFeatureRoutes from '../routes/landing-feature.routes.js'
 // Permission Management Routes
 import permissionRoutes from '../routes/permission.routes.js'
 import userPermissionRoutes from '../routes/user-permission.routes.js'
@@ -45,6 +46,7 @@ v1Routes.use('/website-documentation', websiteDocumentationRoutes)
 v1Routes.use('/subscription-templates', subscriptionTemplatesRoutes)
 v1Routes.use('/subscription-versions', subscriptionVersionsRoutes)
 v1Routes.use('/seo', seoRoutes)
+v1Routes.use('/landing-features', landingFeatureRoutes)
 
 // Permission Management Routes
 v1Routes.use('/permissions', permissionRoutes)
