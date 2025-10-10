@@ -472,6 +472,7 @@ export const getCategoryTreeController = async (req, res) => {
                     slug: cat.slug,
                     description: cat.description,
                     image: cat.image,
+                    coverImage: cat.coverImage,
                     isActive: cat.isActive,
                     children: buildTree(categories, cat._id)
                 }));
