@@ -57,7 +57,7 @@ export const getAllWebsiteQuotationsController = async (req, res) => {
     const quotations = await WebsiteQuotation.find(filter)
       .populate('seller', 'companyName email phone')
       .populate('category', 'name')
-      .populate('referenceWebTemplates', 'name')
+      .populate('referenceWebTemplates', 'name url')
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit)
