@@ -13,10 +13,11 @@ import jwt from 'jsonwebtoken'
 import sendMail from '../helpers/sendMail.js'
 import Seller from '../models/seller.schema.js'
 import SellerSubscription from '../models/seller-subscription.schema.js'
+import WebsiteProjectChat from '../models/website-project-chat.schema.js'
 
 
-export const generateWebsiteDocumentationToken = (id) => {
-  return jwt.sign({ documentationId: id },
+export const generateWebsiteDocumentationToken = (data={}) => {
+  return jwt.sign(data,
     process.env.DOCUMENTATION_SECRET,
     {
       expiresIn: '30d'
@@ -147,7 +148,7 @@ export const acceptWebsiteQuotationController = async (req, res) => {
       };
     }) || []);
 
-    const token = generateWebsiteDocumentationToken('temp');
+    const token = generateWebsiteDocumentationToken({temp:'temp'});
 
     const websiteDocumentation = new WebsiteDocumentation({
       documentation,
@@ -158,7 +159,32 @@ export const acceptWebsiteQuotationController = async (req, res) => {
 
     await websiteDocumentation.save({ session });
 
-    const finalToken = generateWebsiteDocumentationToken(websiteDocumentation._id);
+
+    console.log(sellerId._id , websiteDocumentation._id , websiteQuotationId)
+
+
+
+
+  // ➕ FIND existing project (created when quotation was submitted)
+  const existingProject = await WebsiteProject.findOne({ 
+    websiteQuotation: websiteQuotationId 
+  }).session(session);
+
+  if (!existingProject) {
+    throw buildErrorObject(httpStatus.BAD_REQUEST, 'Website project not found for this quotation');
+  }
+
+  // ➕ UPDATE existing project with documentation
+  existingProject.websiteDocumentation = websiteDocumentation._id;
+  existingProject.projectStatus = 'quotation_raised';
+  existingProject.amountPaid = 0;
+  await existingProject.save({ session });
+
+  // Chat already exists - no need to create new chat
+  const project = existingProject;
+
+
+    const finalToken = generateWebsiteDocumentationToken({websiteDocumentationId:websiteDocumentation._id , websiteProjectId:project._id});
     
     await WebsiteDocumentation.findByIdAndUpdate(
       websiteDocumentation._id,

@@ -33,7 +33,13 @@ export const getAllWebsiteProjectsController = async (req, res) => {
     const matchStage = {}
 
     if (status) {
+      // If specific status requested, show that status
       matchStage.projectStatus = status
+    } else {
+      // ➕ DEFAULT FILTER: Only show projects where 50% payment completed (exclude quotation phases)
+      matchStage.projectStatus = { 
+        $nin: ['quotation_submitted', 'quotation_raised'] 
+      }
     }
 
     if (seller) {
