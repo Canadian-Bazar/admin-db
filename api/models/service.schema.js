@@ -24,6 +24,17 @@ const ServiceSchema = new mongoose.Schema({
         trim: true,
         maxlength: 200
     },
+    avgRating: {
+        type: Number,
+        default: 0.0,
+        min: 0,
+        max: 5
+    },
+    ratingsCount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     price: {
         type: Number,
         min: 0
@@ -59,6 +70,10 @@ const ServiceSchema = new mongoose.Schema({
     }],
     thumbnail: {
         type: String
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     },
     duration: {
         value: { type: Number, min: 1 },
@@ -116,6 +131,14 @@ const ServiceSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    isArchived: {
+        type: Boolean,
+        default: false
+    },
     seller: {
         type: mongoose.Types.ObjectId,
         ref: 'Seller'
@@ -130,6 +153,28 @@ const ServiceSchema = new mongoose.Schema({
         comment: { type: String, trim: true },
         createdAt: { type: Date, default: Date.now }
     }],
+    isComplete: {
+        type: Boolean,
+        default: false
+    },
+    completionPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    incompleteSteps: [{
+        type: String,
+        enum: ['serviceInfo', 'capabilities', 'order', 'pricing', 'customization', 'media']
+    }],
+    stepStatus: {
+        serviceInfo: { type: Boolean, default: false },
+        capabilities: { type: Boolean, default: false },
+        order: { type: Boolean, default: false },
+        pricing: { type: Boolean, default: false },
+        customization: { type: Boolean, default: false },
+        media: { type: Boolean, default: false }
+    },
     availability: {
         monday: { start: String, end: String, isAvailable: { type: Boolean, default: true } },
         tuesday: { start: String, end: String, isAvailable: { type: Boolean, default: true } },
@@ -172,6 +217,7 @@ ServiceSchema.index({ price: 1 })
 ServiceSchema.index({ rating: -1 })
 ServiceSchema.index({ createdAt: -1 })
 ServiceSchema.index({ serviceType: 1 })
+ServiceSchema.index({ isVerified: 1 })
 
 ServiceSchema.plugin(paginate)
 ServiceSchema.plugin(aggregatePaginate)

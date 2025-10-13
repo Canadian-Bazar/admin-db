@@ -43,7 +43,11 @@ const SellerSchema = new mongoose.Schema({
           required: false,
           trim: true,
      },
-    
+    businessType: {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: 'BusinessType',
+         required: false,
+    },
      approvalStatus: {
           type: String,
           enum: ['pending' ,'submitted', 'approved', 'rejected'],
@@ -124,7 +128,12 @@ const SellerSchema = new mongoose.Schema({
           platform: String ,
           url: String
      }] ,
-    
+    languagesSupported:[
+         {
+              code:String ,
+              name:String 
+         }
+    ]
 
 }, {
      timestamps: true,
