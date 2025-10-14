@@ -47,7 +47,7 @@ export const upsertHomeSettingsController = async (req, res) => {
 // New: list up to 4 home settings
 export const listHomeSettingsController = async (_req, res) => {
   try {
-    const docs = await HomeSettings.find({}).sort({ updatedAt: -1 }).limit(4).lean()
+    const docs = await HomeSettings.find({}).sort({ createdAt: 1 }).limit(4).lean()
     return res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, { docs }))
   } catch (err) {
     handleError(res, err)
