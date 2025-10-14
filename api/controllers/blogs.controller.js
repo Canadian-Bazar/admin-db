@@ -28,10 +28,11 @@ export const createBlogController = async (req, res) => {
             coverImage = uploadedUrl;
         }
 
-        let baseSlug = generateSlug(title);
-        let slug = baseSlug;
+        // Accept optional slug from client or generate from title
+        const requestedSlug = (validatedData.slug || '').toString().trim();
+        let baseSlug = requestedSlug || generateSlug(title);
+        let slug = baseSlug || 'blog';
         let suffix = 1;
-
         while (await Blog.exists({ slug })) {
             slug = `${baseSlug}-${suffix++}`;
         }
@@ -41,7 +42,8 @@ export const createBlogController = async (req, res) => {
             author,
             content,
             description,
-            coverImage
+            coverImage,
+            slug,
         });
 
         return res.status(httpStatus.CREATED).json(

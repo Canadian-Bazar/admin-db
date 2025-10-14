@@ -40,6 +40,12 @@ export const validateCreateBlog = [
         .isLength({ min: 10, max: 500 })
         .withMessage('Description must be between 10 and 500 characters'),
 
+    // Optional client-provided slug (validated if present)
+    check('slug')
+        .optional()
+        .isString().withMessage('Slug must be a string')
+        .isSlug().withMessage('Slug must be a valid slug format'),
+
     (req, res, next) => validateRequest(req, res, next)
 ]
 
