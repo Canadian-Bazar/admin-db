@@ -188,6 +188,20 @@ export const getProjectByIdController = async (req, res) => {
         }
       },
       { $unwind: { path: '$websiteQuotation', preserveNullAndEmptyArrays: true } },
+      // Populate selected reference templates from WebsiteTemplate
+      {
+        $lookup: {
+          from: 'WebsiteTemplate',
+          localField: 'websiteQuotation.referenceWebTemplates',
+          foreignField: '_id',
+          as: 'referenceTemplates'
+        }
+      },
+      {
+        $addFields: {
+          'websiteQuotation.referenceWebTemplates': '$referenceTemplates'
+        }
+      },
       {
         $lookup: {
           from: 'WebsiteDocumentation',
@@ -229,6 +243,9 @@ export const getProjectByIdController = async (req, res) => {
           'seller.phone': 1,
           'websiteQuotation._id': 1,
           'websiteQuotation.domainName': 1,
+          'websiteQuotation.referenceurl': 1,
+          'websiteQuotation.additionalDetails': 1,
+          'websiteQuotation.referenceWebTemplates': 1,
           'websiteQuotation.itemsSold': 1,
           'websiteDocumentation._id': 1,
           'websiteDocumentation.documentation': 1,
