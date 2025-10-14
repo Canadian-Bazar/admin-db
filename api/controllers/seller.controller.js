@@ -288,6 +288,7 @@ export const approveSellerController = async (req, res) => {
 
             // Update seller status
             seller.approvalStatus = 'approved';
+            seller.isVerified = true;
             await seller.save({ session });
 
             req.responseData = {
@@ -296,7 +297,8 @@ export const approveSellerController = async (req, res) => {
                     _id: seller._id,
                     companyName: seller.companyName,
                     email: seller.email,
-                    approvalStatus: seller.approvalStatus
+                    approvalStatus: seller.approvalStatus,
+                    isVerified: seller.isVerified
                 }
             };
         });
