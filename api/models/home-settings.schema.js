@@ -10,7 +10,8 @@ const HomeSettingsSchema = new mongoose.Schema({
   mainHeadingCanadian: { type: String, default: '' },
   subHeadingPart1: { type: String, default: '' },
   subHeadingPart2: { type: String, default: '' },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 1 }
 }, { collection: 'HomeSettings', timestamps: true })
 
 export default mongoose.model('HomeSettings', HomeSettingsSchema)

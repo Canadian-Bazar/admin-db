@@ -35,6 +35,7 @@ export const upsertHomeSettingsController = async (req, res) => {
       ...(payload.subHeadingPart1 !== undefined ? { subHeadingPart1: payload.subHeadingPart1 } : {}),
       ...(payload.subHeadingPart2 !== undefined ? { subHeadingPart2: payload.subHeadingPart2 } : {}),
       ...(payload.isActive !== undefined ? { isActive: payload.isActive } : {}),
+      ...(payload.order !== undefined ? { order: payload.order } : {}),
     }
 
     const updated = await HomeSettings.findOneAndUpdate({}, { $set: update }, { upsert: true, new: true })
@@ -69,6 +70,9 @@ export const createHomeSettingController = async (req, res) => {
       const [key] = await uploadFile(req.files)
       backgroundImage = key
     }
+    // Determine next order if not provided: start from 0 and increment
+    const lastBySort = await HomeSettings.findOne({}).sort({ order: -1 }).select('order').lean()
+    const nextSort = lastBySort && typeof lastBySort.order === 'number' ? lastBySort.order + 1 : 1
     const created = await HomeSettings.create({
       backgroundImage,
       title: payload.title || '',
@@ -78,6 +82,7 @@ export const createHomeSettingController = async (req, res) => {
       subHeadingPart1: payload.subHeadingPart1 || '',
       subHeadingPart2: payload.subHeadingPart2 || '',
       isActive: payload.isActive !== undefined ? payload.isActive : true,
+      order: payload.order !== undefined ? payload.order : nextSort,
     })
     return res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, created))
   } catch (err) {
@@ -108,6 +113,7 @@ export const updateHomeSettingByIdController = async (req, res) => {
       ...(payload.mainHeadingCanadian !== undefined ? { mainHeadingCanadian: payload.mainHeadingCanadian } : {}),
       ...(payload.subHeadingPart1 !== undefined ? { subHeadingPart1: payload.subHeadingPart1 } : {}),
       ...(payload.subHeadingPart2 !== undefined ? { subHeadingPart2: payload.subHeadingPart2 } : {}),
+      ...(payload.order !== undefined ? { order: payload.order } : {}),
     }
     const updated = await HomeSettings.findByIdAndUpdate(id, { $set: update }, { new: true })
     return res.status(httpStatus.OK).json(buildResponse(httpStatus.OK, updated))

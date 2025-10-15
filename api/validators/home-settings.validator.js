@@ -10,6 +10,7 @@ export const validateUpsert = [
   check('subHeadingPart1').optional().isString().trim(),
   check('subHeadingPart2').optional().isString().trim(),
   check('isActive').optional().isBoolean(),
+  check('order').optional().isInt(),
   (req, res, next) => validateRequest(req, res, next)
 ]
 
