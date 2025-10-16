@@ -336,6 +336,7 @@ export const rejectSellerController = async (req, res) => {
 
             // Update seller status
             seller.approvalStatus = 'rejected';
+            seller.isVerified = false;
             await seller.save({ session });
 
             // Send email notification
@@ -360,7 +361,8 @@ export const rejectSellerController = async (req, res) => {
                     _id: seller._id,
                     companyName: seller.companyName,
                     email: seller.email,
-                    approvalStatus: seller.approvalStatus
+                    approvalStatus: seller.approvalStatus,
+                    isVerified: seller.isVerified
                 }
             };
         });
