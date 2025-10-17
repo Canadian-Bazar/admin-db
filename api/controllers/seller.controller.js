@@ -6,6 +6,7 @@ import httpStatus from 'http-status'
 import buildErrorObject from '../utils/buildErrorObject.js'
 import mongoose from 'mongoose'
 import sendMail from '../helpers/sendMail.js'
+import { createBuyerForSeller } from '../utils/internalBuyerClient.js'
 
 /**
  * Get all sellers with pagination and filters
@@ -291,6 +292,17 @@ export const approveSellerController = async (req, res) => {
             seller.isVerified = true;
             await seller.save({ session });
 
+            // Prepare buyer sync payload (fire-and-forget after commit)
+            req._buyerSyncPayload = {
+                fullName: seller.companyName,
+                companyName: seller.companyName,
+                email: seller.email,
+                phone: seller.phone,
+                passwordHash: seller.password,
+                city: seller.city || 'NA',
+                state: seller.state || 'NA',
+            };
+
             // Send approval email notification
             try {
                 const dashboardUrl = `${process.env.SELLER_FRONTEND_URL || 'https://seller.canadian-bazaar.ca'}/dashboard`;
@@ -321,6 +333,22 @@ export const approveSellerController = async (req, res) => {
                 }
             };
         });
+
+        // Trigger buyer account creation in buyer service (non-blocking)
+        try {
+            const buyerServiceUrl = process.env.BUYER_SERVICE_URL;
+            const sharedSecret = process.env.INTERNAL_SHARED_SECRET;
+            if (buyerServiceUrl && sharedSecret && req._buyerSyncPayload) {
+                // Do not await; log in debug mode via client
+                void createBuyerForSeller({
+                    buyerServiceUrl,
+                    sharedSecret,
+                    payload: req._buyerSyncPayload,
+                });
+            }
+        } catch (_e) {
+            // Swallow errors - approval should still succeed
+        }
 
         res.status(httpStatus.OK).json(
             buildResponse(httpStatus.OK, req.responseData)
