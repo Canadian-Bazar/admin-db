@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Documentation Rejected</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f7fa; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header { background: linear-gradient(135deg, #f56565 0%, #c53030 100%); padding: 40px 30px; text-align: center; color: #ffffff; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; font-weight: 700; }
+        .header p { font-size: 16px; opacity: 0.95; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; color: #2d3748; margin-bottom: 24px; line-height: 1.7; }
+        .info-box { background: #f7fafc; border-left: 4px solid #f56565; padding: 20px; margin: 24px 0; border-radius: 6px; }
+        .info-box h3 { color: #2d3748; font-size: 16px; margin-bottom: 16px; font-weight: 600; }
+        .info-row { display: flex; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; }
+        .info-label { font-weight: 600; color: #4a5568; min-width: 140px; }
+        .info-value { color: #2d3748; flex: 1; word-break: break-word; }
+        .rejection-box { background: #fff5f5; border: 2px solid #fc8181; padding: 20px; margin: 24px 0; border-radius: 8px; }
+        .rejection-box h3 { color: #c53030; font-size: 16px; margin-bottom: 12px; font-weight: 600; }
+        .rejection-box p { color: #742a2a; line-height: 1.7; white-space: pre-wrap; }
+        .btn { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; text-align: center; margin: 24px 0; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3); }
+        .note { background: #fef5e7; border-left: 4px solid #f39c12; padding: 16px; margin: 24px 0; border-radius: 6px; color: #7d6608; font-size: 14px; }
+        .footer { background: #f7fafc; padding: 30px; text-align: center; color: #718096; font-size: 14px; border-top: 1px solid #e2e8f0; }
+        .footer p { margin-bottom: 8px; }
+        .logo { font-size: 32px; margin-bottom: 8px; }
+        @media only screen and (max-width: 600px) {
+            .container { margin: 20px; border-radius: 8px; }
+            .header { padding: 30px 20px; }
+            .content { padding: 30px 20px; }
+            .header h1 { font-size: 24px; }
+            .info-row { flex-direction: column; }
+            .info-label { min-width: auto; margin-bottom: 4px; }
+            .btn { display: block; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">⚠️</div>
+            <h1>Website Documentation Rejected</h1>
+            <p>A seller has rejected the website documentation</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Hello Admin,
+            </div>
+            
+            <p style="color: #4a5568; margin-bottom: 24px;">
+                The website documentation you created for <strong><%= companyName %></strong> has been rejected by the seller. Please review their feedback and create updated documentation.
+            </p>
+            
+            <div class="info-box">
+                <h3>📋 Project Details</h3>
+                <div class="info-row">
+                    <span class="info-label">Company:</span>
+                    <span class="info-value"><strong><%= companyName %></strong></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value"><%= email %></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Domain Name:</span>
+                    <span class="info-value"><%= domainName %></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Rejected On:</span>
+                    <span class="info-value"><%= rejectionDate %></span>
+                </div>
+            </div>
+            
+            <div class="rejection-box">
+                <h3>❌ Rejection Reason</h3>
+                <p><%= rejectionReason %></p>
+            </div>
+            
+            <% if (feedback) { %>
+            <div class="rejection-box">
+                <h3>💭 Additional Feedback</h3>
+                <p><%= feedback %></p>
+            </div>
+            <% } %>
+            
+            <div class="note">
+                <strong>📝 Next Steps:</strong> Please review the seller's feedback and create new documentation that addresses their concerns. The seller is waiting for your response.
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="<%= adminDashboardUrl %>" class="btn">
+                    View in Dashboard
+                </a>
+            </div>
+            
+            <p style="color: #718096; font-size: 14px; margin-top: 32px; text-align: center;">
+                Quick action will help keep the seller engaged! 💪
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Canadian Bazaar Admin</strong></p>
+            <p>Connecting businesses across Canada</p>
+            <p style="color: #a0aec0; margin-top: 16px; font-size: 12px;">
+                This is an automated notification. Please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

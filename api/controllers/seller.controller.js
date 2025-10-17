@@ -291,8 +291,27 @@ export const approveSellerController = async (req, res) => {
             seller.isVerified = true;
             await seller.save({ session });
 
+            // Send approval email notification
+            try {
+                const dashboardUrl = `${process.env.SELLER_FRONTEND_URL || 'https://seller.canadian-bazaar.ca'}/dashboard`;
+                
+                await sendMail(
+                    seller.email,
+                    'seller-approved.ejs',
+                    {
+                        subject: 'Canadian Bazaar - Account Approved! 🎉',
+                        companyName: seller.companyName,
+                        email: seller.email,
+                        dashboardUrl: dashboardUrl
+                    }
+                );
+            } catch (emailError) {
+                console.error('Failed to send seller approval email:', emailError);
+                // Don't throw error here - we still want the approval to succeed
+            }
+
             req.responseData = {
-                message: 'Seller approved successfully',
+                message: 'Seller approved successfully and notification email sent',
                 seller: {
                     _id: seller._id,
                     companyName: seller.companyName,
