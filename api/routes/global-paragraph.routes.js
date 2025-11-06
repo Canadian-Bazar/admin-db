@@ -20,28 +20,28 @@ router.get('/', getGlobalParagraphController)
 router.post(
   '/',
   requireAuth,
-  checkPermission('manage-global-paragraph', 'create'),
+  checkPermission('global-paragraph', 'create'),
   setGlobalParagraphController
 )
 
 router.get(
   '/list',
   requireAuth,
-  checkPermission('manage-global-paragraph', 'view'),
+  checkPermission('global-paragraph', 'view'),
   listGlobalParagraphsController
 )
 
 router.put(
   '/:id',
   requireAuth,
-  checkPermission('manage-global-paragraph', 'edit'),
+  checkPermission('global-paragraph', 'edit'),
   updateGlobalParagraphByIdController
 )
 
 router.delete(
   '/:id',
   requireAuth,
-  checkPermission('manage-global-paragraph', 'delete'),
+  checkPermission('global-paragraph', 'delete'),
   deleteGlobalParagraphByIdController
 )
 

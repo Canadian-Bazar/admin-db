@@ -46,6 +46,12 @@ export const validateCreateBlog = [
         .isString().withMessage('Slug must be a string')
         .isSlug().withMessage('Slug must be a valid slug format'),
 
+    // Optional cover image alt text
+    check('coverImageAlt')
+        .optional()
+        .isString().withMessage('Cover image alt must be a string')
+        .isLength({ max: 200 }).withMessage('Cover image alt must be at most 200 characters'),
+
     (req, res, next) => validateRequest(req, res, next)
 ]
 
@@ -110,6 +116,12 @@ export const validateUpdateBlog = [
         .withMessage('Description must be a string')
         .isLength({ min: 10, max: 500 })
         .withMessage('Description must be between 10 and 500 characters'),
+
+    // Optional cover image alt text
+    check('coverImageAlt')
+        .optional()
+        .isString().withMessage('Cover image alt must be a string')
+        .isLength({ max: 200 }).withMessage('Cover image alt must be at most 200 characters'),
 
     (req, res, next) => validateRequest(req, res, next)
 ]
