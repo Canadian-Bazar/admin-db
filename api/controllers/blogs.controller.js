@@ -18,7 +18,7 @@ const generateSlug = (title) => {
 export const createBlogController = async (req, res) => {
     try {
         const validatedData = matchedData(req);
-        const { title, author, content, description } = validatedData;
+        const { title, author, content, description, coverImageAlt } = validatedData;
 
         let coverImage = "";
 
@@ -43,6 +43,7 @@ export const createBlogController = async (req, res) => {
             content,
             description,
             coverImage,
+            coverImageAlt,
             slug,
         });
 
@@ -128,7 +129,7 @@ export const getBlogByIdController = async (req, res) => {
 export const updateBlogController = async (req, res) => {
     try {
         const validatedData = matchedData(req);
-        const { blogId, title, author, content, description } = validatedData;
+        const { blogId, title, author, content, description, coverImageAlt } = validatedData;
 
         const blog = await Blog.findById(blogId);
         if (!blog) {
@@ -165,6 +166,10 @@ export const updateBlogController = async (req, res) => {
 
         if (description !== undefined) {
             blog.description = description;
+        }
+
+        if (coverImageAlt !== undefined) {
+            blog.coverImageAlt = coverImageAlt;
         }
 
         if (req.files && req.files.length > 0) {
